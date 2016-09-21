@@ -1,6 +1,7 @@
 site_name: SNIC Science Cloud
 pages:
   - Home: index.md
+  - Configuration: config_common.md
   - Reference documentation: ref_doc.md
   - About: about.md
 theme: readthedocs
