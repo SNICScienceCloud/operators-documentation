@@ -35,9 +35,28 @@ Openstack Ansible was used for the Openstack deployment at HPC2N.
 
 Note*: Two storage nodes have 6 x 4T Disks, Two storage nodes have 5 x 4T Disks + 2 x 2T Disks. But the total amout of storage on the nodes are identical.
 
+## Node setup
+
+All nodes run ubuntu 14.04 and they are installed with Puppet, the HPC2N standard for server installation.
+
+## Openstack Ansible
+
+The storage node u-sn-o38 is also used as deployment-host for openstack-asible.
+Kerberos is used for access to destination hosts. (SSH-Keys are **not** used)
+
+The rest of the setup follows openstack-ansible refrence manual for installation.
+
+The following configuraton files were used for deployment.
+
+- [openstack_user_config.yml](hpc2n_conf/openstack_user_config.yml)
+- [user_variables.yml](hpc2n_conf/user_variables.yml)
+
+
 ## Network
 
 Linux-bridges are used for the for the vlan and vxlan traffic.
+
+There is a IPv6 network reserved but not yet configured.
 
 ### Floating IPv4 Pool
 

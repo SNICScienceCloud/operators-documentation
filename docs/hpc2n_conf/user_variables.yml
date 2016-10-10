@@ -1,0 +1,185 @@
+ceilometer_db_type: mongodb
+ceilometer_db_ip: 172.16.2.2
+# ceilometer_db_port: 27017
+
+## Common Override to enable Ceilometer for each service.
+## By default all service are *not* enabled.
+# swift_ceilometer_enabled: True
+heat_ceilometer_enabled: True
+cinder_ceilometer_enabled: True
+glance_ceilometer_enabled: True
+nova_ceilometer_enabled: True
+neutron_ceilometer_enabled: True
+# keystone_ceilometer_enabled: True
+
+## Common Aodh Overrides
+# aodh_db_type: mongodb
+# aodh_db_ip: localhost
+# aodh_db_port: 27017
+
+## Common Glance Overrides
+# Set glance_default_store to "swift" if using Cloud Files or swift backend
+# or "rbd" if using ceph backend; the latter will trigger ceph to get
+# installed on glance. If using a file store, a shared file store is
+# recommended. See the OpenStack-Ansible install guide and the OpenStack
+# documentation for more details.
+# glance_default_store: file
+
+## Ceph pool name for Glance to use
+glance_ceph_client: glance
+glance_rbd_store_pool: glance-images
+glance_rbd_store_chunk_size: 8
+
+## Glance Options
+# Set glance_default_store to "swift" if using Cloud Files or swift backend
+# or "rbd" if using ceph backend; the latter will trigger ceph to get
+# installed on glance
+glance_default_store: rbd
+glance_notification_driver: noop
+
+glance_swift_store_endpoint_type: internalURL
+
+## Common Nova Overrides
+# When nova_libvirt_images_rbd_pool is defined, ceph will be installed on nova
+# hosts.
+nova_libvirt_images_rbd_pool: nova-vms
+
+# If you wish to change the dhcp_domain configured for both nova and neutron
+# dhcp_domain: openstacklocal
+
+## Common Glance Overrides when using a Swift back-end
+# By default when 'glance_default_store' is set to 'swift' the playbooks will
+# expect to use the Swift back-end that is configured in the same inventory.
+# If the Swift back-end is not in the same inventory (ie it is already setup
+# through some other means) then these settings should be used.
+#
+# NOTE: Ensure that the auth version matches your authentication endpoint.
+#
+# NOTE: If the password for glance_swift_store_key contains a dollar sign ($),
+# it must be escaped with an additional dollar sign ($$), not a backslash. For
+# example, a password of "super$ecure" would need to be entered as
+# "super$$ecure" below.  See Launchpad Bug #1259729 for more details.
+#
+# glance_swift_store_auth_version: 3
+# glance_swift_store_auth_address: "https://some.auth.url.com"
+# glance_swift_store_user: "OPENSTACK_TENANT_ID:OPENSTACK_USER_NAME"
+# glance_swift_store_key: "OPENSTACK_USER_PASSWORD"
+# glance_swift_store_container: "NAME_OF_SWIFT_CONTAINER"
+# glance_swift_store_region: "NAME_OF_REGION"
+
+## Common Ceph Overrides
+ceph_mons:
+  - 172.16.1.12
+  - 172.16.1.13
+  - 172.16.1.14
+
+## Custom Ceph Configuration File (ceph.conf)
+# By default, your deployment host will connect to one of the mons defined above to
+# obtain a copy of your cluster's ceph.conf.  If you prefer, uncomment ceph_conf_file
+# and customise to avoid ceph.conf being copied from a mon.
+#ceph_conf_file: |
+#  [global]
+#  fsid = 00000000-1111-2222-3333-444444444444
+#  mon_initial_members = mon1.example.local,mon2.example.local,mon3.example.local
+#  mon_host = 10.16.5.40,10.16.5.41,10.16.5.42
+#  # optionally, you can use this construct to avoid defining this list twice:
+#  # mon_host = {{ ceph_mons|join(',') }}
+#  auth_cluster_required = cephx
+#  auth_service_required = cephx
+
+## Cinder
+# Ceph client user for cinder to connect to the ceph cluster
+cinder_ceph_client: cinder
+ceph_apt_repo_url_region: "www"  # or "eu" for Netherlands based mirror
+ceph_stable_release: infernalis
+cephx: true
+
+ssl_protocol: "ALL -SSLv2 -SSLv3"
+ssl_cipher_suite: "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS"
+
+# By default, openstack-ansible configures all OpenStack services to talk to
+# RabbitMQ over encrypted connections on port 5671. To opt-out of this default,
+# set the rabbitmq_use_ssl variable to 'false'. The default setting of 'true'
+# is highly recommended for securing the contents of RabbitMQ messages.
+rabbitmq_use_ssl: true
+
+
+## Additional pinning generator that will allow for more packages to be pinned as you see fit.
+## All pins allow for package and versions to be defined. Be careful using this as versions
+## are always subject to change and updates regarding security will become your problem from this
+## point on. Pinning can be done based on a package version, release, or origin. Use "*" in the
+## package name to indicate that you want to pin all package to a particular constraint.
+# apt_pinned_packages:
+#   - { package: "lxc", version: "1.0.7-0ubuntu0.1" }
+#   - { package: "libvirt-bin", version: "1.2.2-0ubuntu13.1.9" }
+#   - { package: "rabbitmq-server", origin: "www.rabbitmq.com" }
+#   - { package: "*", release: "MariaDB" }
+
+
+## Environment variable settings
+# This allows users to specify the additional environment variables to be set
+# which is useful in setting where you working behind a proxy. If working behind
+# a proxy It's important to always specify the scheme as "http://". This is what
+# the underlying python libraries will handle best. This proxy information will be
+# placed both on the hosts and inside the containers.
+
+## Example environment variable setup:
+# proxy_env_url: http://username:pa$$w0rd@10.10.10.9:9000/
+# no_proxy_env: "localhost,127.0.0.1,{% for host in groups['all_containers'] %}{{ hostvars[host]['container_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+# global_environment_variables:
+#   HTTP_PROXY: "{{ proxy_env_url }}"
+#   HTTPS_PROXY: "{{ proxy_env_url }}"
+#   NO_PROXY: "{{ no_proxy_env }}"
+
+
+## SSH connection wait time
+# If an increased delay for the ssh connection check is desired,
+# uncomment this variable and set it appropriately.
+#ssh_delay: 5
+
+
+## HAProxy
+# Uncomment this to disable keepalived installation (cf. documentation)
+haproxy_use_keepalived: True
+#
+# HAProxy Keepalived configuration (cf. documentation)
+# Make sure that this is set correctly according to the CIDR used for your
+# internal and external addresses.
+haproxy_keepalived_external_vip_cidr: "{{external_lb_vip_address}}/25"
+haproxy_keepalived_internal_vip_cidr: "{{internal_lb_vip_address}}/24"
+haproxy_keepalived_external_interface: eth1
+haproxy_keepalived_internal_interface: br-mgmt
+
+# Defines the default VRRP id used for keepalived with haproxy.
+# Overwrite it to your value to make sure you don't overlap
+# with existing VRRPs id on your network. Default is 10 for the external and 11 for the
+# internal VRRPs
+haproxy_keepalived_external_virtual_router_id: 110
+haproxy_keepalived_internal_virtual_router_id: 111
+
+# Defines the VRRP master/backup priority. Defaults respectively to 100 and 20
+haproxy_keepalived_priority_master: 100
+haproxy_keepalived_priority_backup: 20
+
+# All the previous variables are used in a var file, fed to the keepalived role.
+# To use another file to feed the role, override the following var:
+# haproxy_keepalived_vars_file: 'vars/configs/keepalived_haproxy.yml'
+
+nova_force_config_drive: False
+
+nova_nova_conf_overrides:
+  DEFAULT:
+    nova_scheduler_default_filters: "RetryFilter,AvailabilityZoneFilter,RamFilter,ComputeFilter,ComputeCapabilitiesFilter,ImagePropertiesFilter,ServerGroupAntiAffinityFilter,ServerGroupAffinityFilter,AggregateCoreFilter,AggregateDiskFilter,AggregateInstanceExtraSpecsFilter"
+  libvirt:
+    live_migration_uri: qemu+ssh://nova@%s/system?keyfile=/var/lib/nova/.ssh/id_rsa&no_verify=1
+
+# Service usernames
+ceilometer_service_user_name: ceilometer-hpc2n
+nova_service_user_name: nova-hpc2n
+neutron_service_user_name: neutron-hpc2n
+glance_service_user_name: glance-hpc2n
+keystone_service_user_name: keystone-hcp2n
+cinder_service_user_name: cinder-hcp2n
+aodh_service_user_name: aodh-hpc2n
+heat_service_user_name: heat-hpc2n
+swift_service_user_name: swift-hpc2n
