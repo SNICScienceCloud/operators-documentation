@@ -4,6 +4,10 @@
 
 Openstack Ansible was used for the Openstack deployment at HPC2N.
 
+## System map
+
+![System map](img/ssc_hpc2n.png)
+
 ## Hardware setup
 
 ### Compute nodes x 10
@@ -30,9 +34,6 @@ Openstack Ansible was used for the Openstack deployment at HPC2N.
 
 
 Note*: Two storage nodes have 6 x 4T Disks, Two storage nodes have 5 x 4T Disks + 2 x 2T Disks. But the total amout of storage on the nodes are identical.
-
-## Openstack-Ansible
-
 
 ## Network
 
