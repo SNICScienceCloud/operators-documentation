@@ -6,7 +6,7 @@ Openstack Ansible was used for the Openstack deployment at HPC2N.
 
 ## System map
 
-![System map](img/ssc_hpc2n.png)
+[![System map](img/ssc_hpc2n.png)](ssc_hpc2n.dia)
 
 ## Hardware setup
 
