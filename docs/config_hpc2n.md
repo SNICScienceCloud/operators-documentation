@@ -58,6 +58,168 @@ Linux-bridges are used for the for the vlan and vxlan traffic.
 
 There is a IPv6 network reserved but not yet configured.
 
+### Compute node interfaces
+
+/etc/network/interfaces.d/bridge.interfaces
+
+    auto eth2
+    iface eth2 inet manual
+    
+    # Container management VLAN interface
+    iface eth2.10 inet manual
+        vlan-raw-device eth2
+    
+    auto eth3
+    iface eth3 inet manual
+    
+    # OpenStack Networking VXLAN (tunnel/overlay) VLAN interface
+    iface eth3.20 inet manual
+        vlan-raw-device eth3
+    
+    # Container management bridge
+    auto br-mgmt
+    iface br-mgmt inet static
+        bridge_stp off
+        bridge_waitport 0
+        bridge_fd 0
+        # Bridge port references tagged interface
+        bridge_ports eth2.10
+        address 172.16.2.3X
+        netmask 255.255.255.0
+    
+    # OpenStack Networking VXLAN (tunnel/overlay) bridge
+    auto br-vxlan
+    iface br-vxlan inet static
+        bridge_stp off
+        bridge_waitport 0
+        bridge_fd 0
+        # Bridge port references tagged interface
+        bridge_ports eth3.20
+        address 10.10.0.3X
+        netmask 255.255.0.0
+    
+    # OpenStack Networking VLAN bridge
+    auto br-vlan
+    iface br-vlan inet manual
+        bridge_stp off
+        bridge_waitport 0
+        bridge_fd 0
+        # Bridge port references untagged interface
+        bridge_ports eth3
+    
+    auto br-storage
+    iface br-storage inet static
+        # Completely disable IPv6 router advertisements/autoconfig
+        pre-up sysctl -q -e -w net/ipv6/conf/br-storage/accept_ra=0
+        bridge_stp off
+        bridge_waitport 0
+        bridge_fd 0
+        bridge_ports eth2
+        address 172.16.1.3X
+        netmask 255.255.255.0
+        broadcast 172.16.1.255
+
+- u-cn-o05 has IP suffix .30
+- u-cn-o06 has IP suffix .31
+- u-cn-o07 has IP suffix .32
+- u-cn-o10 has IP suffix .33
+- u-cn-o11 has IP suffix .34
+- u-cn-o12 has IP suffix .35
+- u-cn-o13 has IP suffix .36
+- u-cn-o14 has IP suffix .37
+
+### Management node interfaces
+
+/etc/network/interfaces.d/bridge.interfaces
+
+    # Container management VLAN interface
+    iface bond0.10 inet manual
+        vlan-raw-device bond0
+    
+    # OpenStack Networking VXLAN (tunnel/overlay) VLAN interface
+    iface bond1.20 inet manual
+        vlan-raw-device bond1
+    
+    # Container management bridge
+    auto br-mgmt
+    iface br-mgmt inet static
+        bridge_stp off
+        bridge_waitport 0
+        bridge_fd 0
+        # Bridge port references tagged interface
+        bridge_ports bond0.10
+        address 172.16.2.X
+        netmask 255.255.255.0
+    
+    # OpenStack Networking VXLAN (tunnel/overlay) bridge
+    auto br-vxlan
+    iface br-vxlan inet manual
+        bridge_stp off
+        bridge_waitport 0
+        bridge_fd 0
+        # Bridge port references tagged interface
+        bridge_ports bond1.20
+    
+    # OpenStack Networking VLAN bridge
+    auto br-vlan
+    iface br-vlan inet manual
+        bridge_stp off
+        bridge_waitport 0
+        bridge_fd 0
+        # Bridge port references untagged interface
+        bridge_ports bond1
+    
+    auto br-storage
+    iface br-storage inet static
+        bridge_stp off
+        bridge_waitport 0
+        bridge_fd 0
+        bridge_ports bond0
+        address 172.16.1.X
+        netmask 255.255.255.0
+
+- u-mn-o24 has IP suffix .2
+- u-mn-o25 has IP suffix .3
+- u-mn-o26 has IP suffix .4
+
+
+/etc/network/interfaces.d/bond0.interfaces
+
+    auto eth2
+    iface eth2 inet manual
+        bond-master bond0
+    
+    auto eth4
+    iface eth4 inet manual
+        bond-master bond0
+    
+    auto bond0
+    iface bond0 inet manual
+        bond-slaves eth2 eth4
+        bond-mode active-backup
+        bond-miimon 100
+        bond-downdelay 200
+        bond-updelay 200
+
+/etc/network/interfaces.d/bond1.interfaces
+
+    auto eth3
+    iface eth3 inet manual
+        bond-master bond1
+    
+    auto eth5
+    iface eth5 inet manual
+        bond-master bond1
+    
+    auto bond1
+    iface bond1 inet manual
+        bond-slaves eth1 eth3
+        bond-mode active-backup
+        bond-miimon 100
+        bond-downdelay 250
+        bond-updelay 250
+
+
 ### Floating IPv4 Pool
 
 The floating IPv4 network pool is a full class C network (130.239.81.0/24) with the gateway 130.239.81.254.
