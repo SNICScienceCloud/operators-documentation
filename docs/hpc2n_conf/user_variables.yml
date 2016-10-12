@@ -165,6 +165,11 @@ haproxy_keepalived_priority_backup: 20
 # To use another file to feed the role, override the following var:
 # haproxy_keepalived_vars_file: 'vars/configs/keepalived_haproxy.yml'
 
+haproxy_ssl: True
+haproxy_user_ssl_cert: /etc/openstack_deploy/cert/ssc-endpoint_hpc2n_umu_se.crt
+haproxy_user_ssl_key: /etc/openstack_deploy/cert/ssc-endpoint_hpc2n_umu_se.key
+haproxy_user_ssl_ca_cert: /etc/openstack_deploy/cert/cacert.crt
+
 nova_force_config_drive: False
 
 nova_nova_conf_overrides:
