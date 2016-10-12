@@ -236,6 +236,18 @@ Created with:
 
 ### Nova
 
+#### Modifications for TLS on public endpoint to `/etc/haproxy/conf.d/nova_api_os_compute` on `haproxy_hosts`
+
+Replace the * binding
+
+    bind *:8774
+
+With a dual bind using the load balancer internal VIP (without TLS) and the load balancer external VIP (with TLS enabled and SSLv3 disabled).
+    
+    bind 172.16.2.1:8774
+    bind 130.239.46.130:8774 ssl crt /etc/ssl/private/haproxy.pem no-sslv3
+        http-request set-header X-Forwarded-Proto https if { ssl_fc }
+
 #### Modifications to `/etc/nova/nova.conf` on `compute_hosts`
 
 Config settings for Nova to authenticate with Neutron credentials
@@ -311,6 +323,18 @@ Config settings for Nova authentication
 
 ### Ceilometer
 
+#### Modifications for TLS on public endpoint to `/etc/haproxy/conf.d/ceilometer_api` on `haproxy_hosts`
+
+Replace the * binding
+
+    bind *:8777
+
+With a dual bind using the load balancer internal VIP (without TLS) and the load balancer external VIP (with TLS enabled and SSLv3 disabled).
+    
+    bind 172.16.2.1:8777
+    bind 130.239.46.130:8777 ssl crt /etc/ssl/private/haproxy.pem no-sslv3
+        http-request set-header X-Forwarded-Proto https if { ssl_fc }
+
 #### Modifications to `/etc/ceilometer/ceilometer.conf` on `ceilometer_api_container`
 
 Config settings for Ceilometer authentication
@@ -359,6 +383,18 @@ Config settings for Ceilometer authentication
 
 ### Cinder
 
+#### Modifications for TLS on public endpoint to `/etc/haproxy/conf.d/cinder_api` on `haproxy_hosts`
+
+Replace the * binding
+
+    bind *:8776
+
+With a dual bind using the load balancer internal VIP (without TLS) and the load balancer external VIP (with TLS enabled and SSLv3 disabled).
+
+    bind 172.16.2.1:8776
+    bind 130.239.46.130:8776 ssl crt /etc/ssl/private/haproxy.pem no-sslv3
+        http-request set-header X-Forwarded-Proto https if { ssl_fc }
+
 #### Modifications to `/etc/cinder/cinder.conf` on `cinder_api_container`, `cinder_scheduler_container` and `cinder_volumes_container`
 
 Config settings for Cinder authentication
@@ -378,6 +414,18 @@ Config settings for Cinder authentication
 
 
 ### Neutron 
+
+#### Modifications for TLS on public endpoint to `/etc/haproxy/conf.d/neutron_server` on `haproxy_hosts`
+
+Replace the * binding
+
+    bind *:9696
+
+With a dual bind using the load balancer internal VIP (without TLS) and the load balancer external VIP (with TLS enabled and SSLv3 disabled).
+    
+    bind 172.16.2.1:9696
+    bind 130.239.46.130:9696 ssl crt /etc/ssl/private/haproxy.pem no-sslv3
+        http-request set-header X-Forwarded-Proto https if { ssl_fc }
 
 #### Modifications to `/etc/neutron/metadata_agent.ini` on `neutron_agents_container`
 
@@ -424,6 +472,18 @@ Config settings for Neutron authentication
 
 ### Glance
 
+#### Modifications for TLS on public endpoint to `/etc/haproxy/conf.d/glance_api` on `haproxy_hosts`
+
+Replace the * binding
+
+    bind *:9292
+
+With a dual bind using the load balancer internal VIP (without TLS) and the load balancer external VIP (with TLS enabled and SSLv3 disabled).
+
+    bind 172.16.2.1:9292
+    bind 130.239.46.130:9292 ssl crt /etc/ssl/private/haproxy.pem no-sslv3
+        http-request set-header X-Forwarded-Proto https if { ssl_fc }
+
 #### Modifications to `/etc/glance/glance-api.conf` and `/etc/glance/glance-registry.conf` on `glance_container`
 
 Config settings for Glance authentication
@@ -449,6 +509,30 @@ Config settings for Glance authentication
     admin_password = **SECRET**
 
 ### Heat
+
+#### Modifications for TLS on public endpoint to `/etc/haproxy/conf.d/heat_api` on `haproxy_hosts`
+
+Replace the * binding
+
+    bind *:8004
+
+With a dual bind using the load balancer internal VIP (without TLS) and the load balancer external VIP (with TLS enabled and SSLv3 disabled).
+    
+    bind 172.16.2.1:8004
+    bind 130.239.46.130:8004 ssl crt /etc/ssl/private/haproxy.pem no-sslv3
+        http-request set-header X-Forwarded-Proto https if { ssl_fc }
+
+#### Modifications for TLS on public endpoint to `/etc/haproxy/conf.d/heat_api_cfn` on `haproxy_hosts`
+
+Replace the * binding
+
+    bind *:8000
+
+With a dual bind using the load balancer internal VIP (without TLS) and the load balancer external VIP (with TLS enabled and SSLv3 disabled).
+    
+    bind 172.16.2.1:8000
+    bind 130.239.46.130:8000 ssl crt /etc/ssl/private/haproxy.pem no-sslv3
+        http-request set-header X-Forwarded-Proto https if { ssl_fc }
 
 #### Modifications to `/etc/heat/heat.conf` on `heat_apis_container` and `heat_engine_container`
 
