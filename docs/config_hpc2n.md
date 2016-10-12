@@ -232,7 +232,7 @@ Created with:
 
 ## Manual config changes required for region interation
 
-**These are the settings for the test-cloud without TLS on the endpoints**
+**These are the settings for the test-cloud without TLS on the keystone**
 
 ### Nova
 
