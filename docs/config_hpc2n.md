@@ -42,7 +42,7 @@ All nodes run ubuntu 14.04 and they are installed with Puppet, the HPC2N standar
 ## Openstack Ansible
 
 The storage node u-sn-o38 is also used as deployment-host for openstack-asible.
-Kerberos is used for access to destination hosts. (SSH-Keys are **not** used)
+Kerberos is used for access to destination hosts. SSH-Keys are used for containers.
 
 The rest of the setup follows openstack-ansible refrence manual for installation.
 
@@ -232,7 +232,7 @@ Created with:
 
 ## Manual config changes required for region interation
 
-**These are the settings for the test-cloud without TLS on the keystone**
+**These are the settings for the test-cloud with self-signed cert on the keystone**
 
 ### Nova
 
@@ -253,9 +253,10 @@ With a dual bind using the load balancer internal VIP (without TLS) and the load
 Config settings for Nova to authenticate with Neutron credentials
 
     [neutron]
+    insecure = True
     auth_plugin = password
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -263,7 +264,7 @@ Config settings for Nova to authenticate with Neutron credentials
     password = **SECRET**
     region_name = UPPMAX
 
-Config settings for Nova to authenticate with the correct Cinder instance.
+Config settings for Nova to communicate with the correct Cinder instance.
 
 Locate the correct cinder endpoint with `openstack endpoint list` and the catalog_info format is "Service Type:Service Name:Interface URL Type".
 
@@ -274,9 +275,10 @@ Locate the correct cinder endpoint with `openstack endpoint list` and the catalo
 Config settings for Nova authentication
 
     [keystone_authtoken]
+    insecure = True
     auth_plugin = password
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -286,7 +288,7 @@ Config settings for Nova authentication
 
 #### Modifications to `/etc/nova/nova.conf` on `nova_api_os_compute_container`, `nova_api_metadata_container`, `nova_console_container`, `nova_cert_container` and `nova_conductor_container`
 
-Config settings for Nova to authenticate with the correct Cinder instance.
+Config settings for Nova to communicate with the correct Cinder instance.
 
 Locate the correct cinder endpoint with `openstack endpoint list` and the catalog_info format is "Service Type:Service Name:Interface URL Type".
 
@@ -297,9 +299,10 @@ Locate the correct cinder endpoint with `openstack endpoint list` and the catalo
 Config settings for Nova to authenticate with Neutron credentials
 
     [neutron]
+    insecure = True
     auth_plugin = password
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -310,10 +313,10 @@ Config settings for Nova to authenticate with Neutron credentials
 Config settings for Nova authentication
 
     [keystone_authtoken]
-    insecure = False
+    insecure = True
     auth_plugin = password
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -340,12 +343,12 @@ With a dual bind using the load balancer internal VIP (without TLS) and the load
 Config settings for Ceilometer authentication
 
     [keystone_authtoken]
-    insecure = False
+    insecure = True
     auth_plugin = password
     signing_dir = /var/lib/glance/cache/api
-    identity_uri = http://130.238.29.249:35357
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    identity_uri = https://130.238.29.249:35358
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -356,8 +359,8 @@ Config settings for Ceilometer authentication
 Config settings for Ceilometer service
 
     [service_credentials]
-    os_auth_url = http://130.238.29.249:35357
-    os_auth_uri = http://130.238.29.249:5000
+    os_auth_url = https://130.238.29.249:35358
+    os_auth_uri = https://130.238.29.249:5443
     os_username = ceilometer-HPC2N
     os_tenant_name = service
     os_password = **SECRET**
@@ -368,12 +371,12 @@ Config settings for Ceilometer service
 Config settings for Ceilometer authentication
 
     [keystone_authtoken]
-    insecure = False
+    insecure = True
     auth_plugin = password
     signing_dir = /var/lib/glance/cache/api
-    identity_uri = http://130.238.29.249:35357
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    identity_uri = https://130.238.29.249:35358
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -397,14 +400,22 @@ With a dual bind using the load balancer internal VIP (without TLS) and the load
 
 #### Modifications to `/etc/cinder/cinder.conf` on `cinder_api_container`, `cinder_scheduler_container` and `cinder_volumes_container`
 
+Config settings for Cinder to communicate with the correct Nova instance.
+
+Locate the correct nova endpoint with `openstack endpoint list` and the catalog_info format is "Service Type:Service Name:Interface URL Type".
+
+    [DEFAULT]
+    nova_catalog_info = compute:nova-HPC2N:internalURL
+    nova_catalog_admin_info = compute:nova-HPC2N:adminURL
+
 Config settings for Cinder authentication
 
     [keystone_authtoken]
-    insecure = False
+    insecure = True
     auth_plugin = password
     signing_dir = /var/cache/cinder
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -433,8 +444,8 @@ Config settings for Neutron authentication
 
     [default]
     auth_plugin = password
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     auth_region = UPPMAX
     admin_tenant_name = service
     admin_user = neutron-HPC2N
@@ -446,22 +457,23 @@ Config settings for Neutron authentication
 Config settings for Neutron to authenticate with Nova credentials
 
     [nova]
+    insecure = True
     project_name=services
     username=nova-HPC2N
     password=**SECRET**
     project_domain_id=default
     tenant_name=services
     user_domain_id=default
-    auth_url=http://130.238.29.249:35357/
+    auth_url=https://130.238.29.249:35358/
     region_name=UPPMAX
 
 Config settings for Neutron authentication
 
     [keystone_authtoken]
-    insecure = False
+    insecure = True
     auth_plugin = password
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -489,11 +501,11 @@ With a dual bind using the load balancer internal VIP (without TLS) and the load
 Config settings for Glance authentication
 
     [keystone_authtoken]
-    insecure = False
+    insecure = True
     auth_plugin = password
     signing_dir = /var/lib/glance/cache/api
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -503,8 +515,8 @@ Config settings for Glance authentication
 
 #### Modifications to `/etc/glance/glance-cache.conf` on `glance_container`
 
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     admin_user = glance-HPC2N
     admin_password = **SECRET**
 
@@ -539,11 +551,11 @@ With a dual bind using the load balancer internal VIP (without TLS) and the load
 Config settings for Heat authentication
 
     [keystone_authtoken]
-    insecure = False
+    insecure = True
     auth_plugin = password
     signing_dir = /var/lib/heat/cache/heat
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -554,11 +566,11 @@ Config settings for Heat authentication
 Config settings for Heat to trust Keystone
 
     [trustee]
-    insecure = False
+    insecure = True
     auth_plugin = password
     signing_dir = /var/lib/heat/cache/heat
-    auth_url = http://130.238.29.249:35357
-    auth_uri = http://130.238.29.249:5000
+    auth_url = https://130.238.29.249:35358
+    auth_uri = https://130.238.29.249:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
