@@ -338,7 +338,7 @@ With a dual bind using the load balancer internal VIP (without TLS) and the load
     bind 130.239.46.130:8777 ssl crt /etc/ssl/private/haproxy.pem no-sslv3
         http-request set-header X-Forwarded-Proto https if { ssl_fc }
 
-#### Modifications to `/etc/ceilometer/ceilometer.conf` on `ceilometer_api_container`
+#### Modifications to `/etc/ceilometer/ceilometer.conf` on `ceilometer_api_container` and `compute_hosts`
 
 Config settings for Ceilometer authentication
 
@@ -407,6 +407,11 @@ Locate the correct nova endpoint with `openstack endpoint list` and the catalog_
     [DEFAULT]
     nova_catalog_info = compute:nova-HPC2N:internalURL
     nova_catalog_admin_info = compute:nova-HPC2N:adminURL
+
+Config encryption_auth_url to use the correct keystone
+
+    [keymgr]
+    encryption_auth_url = https://130.238.29.249:5443/v3
 
 Config settings for Cinder authentication
 
