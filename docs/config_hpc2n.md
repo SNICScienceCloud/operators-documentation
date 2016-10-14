@@ -553,6 +553,18 @@ With a dual bind using the load balancer internal VIP (without TLS) and the load
 
 #### Modifications to `/etc/heat/heat.conf` on `heat_apis_container` and `heat_engine_container`
 
+Configure Client keystone to use the correct keystone and endpoint type
+
+    [clients_keystone]
+    insecure = True
+    endpoint_type = publicURL
+    auth_uri = https://130.238.29.249:5443
+
+Configure EC2 Auth Token to use the correct keystone
+
+    [ec2authtoken]
+    auth_uri = https://130.238.29.249:5443/v3
+
 Config settings for Heat authentication
 
     [keystone_authtoken]
