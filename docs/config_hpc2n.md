@@ -263,6 +263,8 @@ Modify `/etc/ceilometer/ceilometer.conf` on `ceilometer_api_container` and `ceil
     metering_time_to_live = 604800
     event_time_to_live = 604800
 
+Alarm database is not setup so make sure that any alarm_connection string in the config file is commented out.
+
 ## Manual config changes required for region interation
 
 **These are the settings for the test-cloud with self-signed cert on the keystone**
