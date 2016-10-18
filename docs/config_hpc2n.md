@@ -264,11 +264,12 @@ Modify `/etc/ceilometer/ceilometer.conf` on `ceilometer_api_container` and `ceil
     event_time_to_live = 604800
 
 Alarm database is not setup so make sure that any alarm_connection string in the config file is commented out.
+If alarms are configured then alarm_history_time_to_live is needed to set the lifetime of those events in the database. 
 
 ## Manual config changes required for region interation
 
 **These are the settings for the test-cloud with self-signed cert on the keystone**
-
+ 
 ### Nova
 
 #### Modifications for TLS on public endpoint to `/etc/haproxy/conf.d/nova_api_os_compute` on `haproxy_hosts`
