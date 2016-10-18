@@ -230,6 +230,39 @@ Created with:
 
     neutron subnet-create  --allocation-pool start=130.239.81.1,end=130.239.81.253 --gateway 130.239.81.254 --disable-dhcp --name floating-130.239.81 --ip-version 4 --dns-nameserver 130.239.1.90 *EXTERNAL_NETWORK_CIDR* 130.239.81.0/24
 
+## Ceilometer
+
+### Setup mogoDB
+
+MongoDB is not setup by the openstack ansible scripts
+
+The mongoDB dabase is installed on the controller node u-mn-24 using the following commands
+
+    apt-get install mongodb-server mongodb-clients python-pymongo
+    sed -i 's/127.0.0.1/172.16.2.2/g' /etc/mongodb.conf
+    echo smallfiles = true >> /etc/mongodb.conf
+    service mongodb restart
+
+Get **CEILOMETER_DBPASS** from `ceilometer_container_db_password` in `/etc/openstack_deploy/user_secrets.yml` on deploy host `u-sn-o38`
+
+    mongo --host 172.16.2.2 --eval '
+    db = db.getSiblingDB("ceilometer");
+    db.addUser({user: "ceilometer",
+    pwd: "**CEILOMETER_DBPASS**",
+    roles: [ "readWrite", "dbAdmin" ]})'
+
+### Database cleanup
+
+Configure how long the samples and events should be stored in the database.
+
+We will only keep them for 7 days.
+
+Modify `/etc/ceilometer/ceilometer.conf` on `ceilometer_api_container` and `ceilometer_collector_container`
+
+    [database]
+    metering_time_to_live = 604800
+    event_time_to_live = 604800
+
 ## Manual config changes required for region interation
 
 **These are the settings for the test-cloud with self-signed cert on the keystone**
@@ -345,7 +378,6 @@ Config settings for Ceilometer authentication
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    signing_dir = /var/lib/glance/cache/api
     identity_uri = https://130.238.29.249:35358
     auth_url = https://130.238.29.249:35358
     auth_uri = https://130.238.29.249:5443
@@ -373,7 +405,6 @@ Config settings for Ceilometer authentication
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    signing_dir = /var/lib/glance/cache/api
     identity_uri = https://130.238.29.249:35358
     auth_url = https://130.238.29.249:35358
     auth_uri = https://130.238.29.249:5443
@@ -418,7 +449,6 @@ Config settings for Cinder authentication
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    signing_dir = /var/cache/cinder
     auth_url = https://130.238.29.249:35358
     auth_uri = https://130.238.29.249:5443
     project_domain_id = default
@@ -508,7 +538,6 @@ Config settings for Glance authentication
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    signing_dir = /var/lib/glance/cache/api
     auth_url = https://130.238.29.249:35358
     auth_uri = https://130.238.29.249:5443
     project_domain_id = default
@@ -570,7 +599,6 @@ Config settings for Heat authentication
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    signing_dir = /var/lib/heat/cache/heat
     auth_url = https://130.238.29.249:35358
     auth_uri = https://130.238.29.249:5443
     project_domain_id = default
@@ -585,7 +613,6 @@ Config settings for Heat to trust Keystone
     [trustee]
     insecure = True
     auth_plugin = password
-    signing_dir = /var/lib/heat/cache/heat
     auth_url = https://130.238.29.249:35358
     auth_uri = https://130.238.29.249:5443
     project_domain_id = default
