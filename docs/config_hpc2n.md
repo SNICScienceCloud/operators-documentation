@@ -268,8 +268,6 @@ If alarms are configured then alarm_history_time_to_live is needed to set the li
 
 ## Manual config changes required for region interation
 
-**These are the settings for the test-cloud with self-signed cert on the keystone**
- 
 ### Nova
 
 #### Modifications for TLS on public endpoint to `/etc/haproxy/conf.d/nova_api_os_compute` on `haproxy_hosts`
@@ -291,8 +289,8 @@ Config settings for Nova to authenticate with Neutron credentials
     [neutron]
     insecure = True
     auth_plugin = password
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -313,8 +311,8 @@ Config settings for Nova authentication
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -337,8 +335,8 @@ Config settings for Nova to authenticate with Neutron credentials
     [neutron]
     insecure = True
     auth_plugin = password
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -351,8 +349,8 @@ Config settings for Nova authentication
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -381,9 +379,9 @@ Config settings for Ceilometer authentication
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    identity_uri = https://130.238.29.249:35358
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    identity_uri = https://130.238.29.253:35358
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -394,8 +392,8 @@ Config settings for Ceilometer authentication
 Config settings for Ceilometer service
 
     [service_credentials]
-    os_auth_url = https://130.238.29.249:35358
-    os_auth_uri = https://130.238.29.249:5443
+    os_auth_url = https://130.238.29.253:35358
+    os_auth_uri = https://130.238.29.253:5443
     os_username = ceilometer-HPC2N
     os_tenant_name = service
     os_password = **SECRET**
@@ -408,9 +406,9 @@ Config settings for Ceilometer authentication
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    identity_uri = https://130.238.29.249:35358
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    identity_uri = https://130.238.29.253:35358
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -445,15 +443,15 @@ Locate the correct nova endpoint with `openstack endpoint list` and the catalog_
 Config encryption_auth_url to use the correct keystone
 
     [keymgr]
-    encryption_auth_url = https://130.238.29.249:5443/v3
+    encryption_auth_url = https://130.238.29.253:5443/v3
 
 Config settings for Cinder authentication
 
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -482,8 +480,8 @@ Config settings for Neutron authentication
 
     [default]
     auth_plugin = password
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     auth_region = UPPMAX
     admin_tenant_name = service
     admin_user = neutron-HPC2N
@@ -502,7 +500,7 @@ Config settings for Neutron to authenticate with Nova credentials
     project_domain_id=default
     tenant_name=services
     user_domain_id=default
-    auth_url=https://130.238.29.249:35358/
+    auth_url=https://130.238.29.253:35358/
     region_name=UPPMAX
 
 Config settings for Neutron authentication
@@ -510,8 +508,8 @@ Config settings for Neutron authentication
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -541,8 +539,8 @@ Config settings for Glance authentication
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -552,8 +550,8 @@ Config settings for Glance authentication
 
 #### Modifications to `/etc/glance/glance-cache.conf` on `glance_container`
 
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     admin_user = glance-HPC2N
     admin_password = **SECRET**
 
@@ -590,20 +588,20 @@ Configure Client keystone to use the correct keystone and endpoint type
     [clients_keystone]
     insecure = True
     endpoint_type = publicURL
-    auth_uri = https://130.238.29.249:5443
+    auth_uri = https://130.238.29.253:5443
 
 Configure EC2 Auth Token to use the correct keystone
 
     [ec2authtoken]
-    auth_uri = https://130.238.29.249:5443/v3
+    auth_uri = https://130.238.29.253:5443/v3
 
 Config settings for Heat authentication
 
     [keystone_authtoken]
     insecure = True
     auth_plugin = password
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
@@ -616,8 +614,8 @@ Config settings for Heat to trust Keystone
     [trustee]
     insecure = True
     auth_plugin = password
-    auth_url = https://130.238.29.249:35358
-    auth_uri = https://130.238.29.249:5443
+    auth_url = https://130.238.29.253:35358
+    auth_uri = https://130.238.29.253:5443
     project_domain_id = default
     user_domain_id = default
     project_name = service
