@@ -300,7 +300,7 @@ used_ips:
 # --------
 global_overrides:
   internal_lb_vip_address: 172.16.2.1
-  external_lb_vip_address: 130.239.46.130
+  external_lb_vip_address: hpc2n.cloud.snic.se
   tunnel_bridge: "br-vxlan"
   management_bridge: "br-mgmt"
   provider_networks:
@@ -521,6 +521,8 @@ identity_hosts:
 # --------
 
 network_hosts:
+  u-mn-o24:
+    ip: 130.239.46.155
   u-mn-o25:
     ip: 130.239.46.156
   u-mn-o26:
@@ -571,6 +573,31 @@ compute_hosts:
   u-cn-o14:
     ip: 130.239.46.145
 
+# ceilometer compute agent (telemetry)
+metering-compute_hosts:
+  u-cn-o05:
+    ip: 130.239.46.154
+  u-cn-o06:
+    ip: 130.239.46.153
+  u-cn-o07:
+    ip: 130.239.46.152
+  u-cn-o08:
+    ip: 130.239.46.151
+  u-cn-o09:
+    ip: 130.239.46.150
+  u-cn-o10:
+    ip: 130.239.46.149
+  u-cn-o11:
+    ip: 130.239.46.148
+  u-cn-o12:
+    ip: 130.239.46.147
+  u-cn-o13:
+    ip: 130.239.46.146
+  u-cn-o14:
+    ip: 130.239.46.145
+
+
+
 
 #
 # Level: storage-infra_hosts (required)
@@ -606,6 +633,7 @@ storage-infra_hosts:
     ip: 130.239.46.156
   u-mn-o26:
     ip: 130.239.46.157
+
 
 #
 # Level: storage_hosts (required)
@@ -860,9 +888,66 @@ log_hosts:
   u-mn-o24:
     ip: 130.239.46.155
 
+# load balancer
+# Ideally the load balancer should not use the Infrastructure hosts.
+# Dedicated hardware is best for improved performance and security.
 haproxy_hosts:
+  u-mn-o24:
+    ip: 130.239.46.155
   u-mn-o25:
     ip: 130.239.46.156
   u-mn-o26:
     ip: 130.239.46.157
+
+# ceilometer (telemetry API)
+metering-infra_hosts:
+  u-mn-o24:
+    ip: 130.239.46.155
+  u-mn-o25:
+    ip: 130.239.46.156
+  u-mn-o26:
+    ip: 130.239.46.157
+
+# gnocchi (telemetry metrics storage)
+metrics_hosts:
+  u-mn-o24:
+    ip: 130.239.46.155
+  u-mn-o25:
+    ip: 130.239.46.156
+  u-mn-o26:
+    ip: 130.239.46.157
+
+# nova api, conductor, etc services
+compute-infra_hosts:
+  u-mn-o24:
+    ip: 130.239.46.155
+  u-mn-o25:
+    ip: 130.239.46.156
+  u-mn-o26:
+    ip: 130.239.46.157
+
+orchestration_hosts:
+  u-mn-o24:
+    ip: 130.239.46.155
+  u-mn-o25:
+    ip: 130.239.46.156
+  u-mn-o26:
+    ip: 130.239.46.157
+
+dashboard_hosts:
+  u-mn-o24:
+    ip: 130.239.46.155
+  u-mn-o25:
+    ip: 130.239.46.156
+  u-mn-o26:
+    ip: 130.239.46.157
+
+suprauth-infra_hosts:
+  u-mn-o24:
+    ip: 130.239.46.155
+  u-mn-o25:
+    ip: 130.239.46.156
+  u-mn-o26:
+    ip: 130.239.46.157
+
 

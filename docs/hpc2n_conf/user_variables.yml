@@ -1,48 +1,90 @@
-ceilometer_db_type: mongodb
-ceilometer_db_ip: 172.16.2.2
-# ceilometer_db_port: 27017
+---
+# Copyright 2014, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-## Common Override to enable Ceilometer for each service.
-## By default all service are *not* enabled.
-# swift_ceilometer_enabled: True
-heat_ceilometer_enabled: True
-cinder_ceilometer_enabled: True
-glance_ceilometer_enabled: True
-nova_ceilometer_enabled: True
-neutron_ceilometer_enabled: True
-# keystone_ceilometer_enabled: True
+###
+### This file contains commonly used overrides for convenience. Please inspect
+### the defaults for each role to find additional override options.
+###
 
-## Common Aodh Overrides
-# aodh_db_type: mongodb
-# aodh_db_ip: localhost
-# aodh_db_port: 27017
+## Debug and Verbose options.
+debug: false
+
+apply_security_hardening: no
+
+# Region names
+
+glance_swift_store_region: HPC2N
+aodh_service_region: HPC2N
+barbican_service_region: HPC2N
+ceilometer_service_region: HPC2N
+cinder_service_region: HPC2N
+designate_service_region: HPC2N
+glance_service_region: HPC2N
+gnocchi_service_region: HPC2N
+heat_service_region: HPC2N
+horizon_service_region: HPC2N
+ironic_service_region: HPC2N
+keystone_service_region: HPC2N
+magnum_service_region: HPC2N
+neutron_service_region: HPC2N
+nova_service_region: HPC2N
+openrc_region_name: HPC2N
+sahara_service_region: HPC2N
+swift_service_region: HPC2N
+trove_service_region: HPC2N
 
 ## Common Glance Overrides
-# Set glance_default_store to "swift" if using Cloud Files or swift backend
+# Set glance_default_store to "swift" if using Cloud Files backend
 # or "rbd" if using ceph backend; the latter will trigger ceph to get
 # installed on glance. If using a file store, a shared file store is
 # recommended. See the OpenStack-Ansible install guide and the OpenStack
 # documentation for more details.
+# Note that "swift" is automatically set as the default back-end if there
+# are any swift hosts in the environment. Use this setting to override
+# this automation if you wish for a different default back-end.
 # glance_default_store: file
 
 ## Ceph pool name for Glance to use
+# glance_rbd_store_pool: images
+# glance_rbd_store_chunk_size: 8
+
 glance_ceph_client: glance
 glance_rbd_store_pool: glance-images
 glance_rbd_store_chunk_size: 8
-
-## Glance Options
-# Set glance_default_store to "swift" if using Cloud Files or swift backend
-# or "rbd" if using ceph backend; the latter will trigger ceph to get
-# installed on glance
 glance_default_store: rbd
 glance_notification_driver: noop
-
 glance_swift_store_endpoint_type: internalURL
+
+
 
 ## Common Nova Overrides
 # When nova_libvirt_images_rbd_pool is defined, ceph will be installed on nova
 # hosts.
+# nova_libvirt_images_rbd_pool: vms
+
 nova_libvirt_images_rbd_pool: nova-vms
+
+
+nova_force_config_drive: False
+
+nova_nova_conf_overrides:
+  DEFAULT:
+    nova_scheduler_default_filters: "RetryFilter,AvailabilityZoneFilter,RamFilter,ComputeFilter,ComputeCapabilitiesFilter,ImagePropertiesFilter,ServerGroupAntiAffinityFilter,ServerGroupAffinityFilter,AggregateCoreFilter,AggregateDiskFilter,AggregateInstanceExtraSpecsFilter"
+  libvirt:
+    live_migration_uri: qemu+ssh://nova@%s/system?keyfile=/var/lib/nova/.ssh/id_rsa&no_verify=1
+
 
 # If you wish to change the dhcp_domain configured for both nova and neutron
 # dhcp_domain: openstacklocal
@@ -69,9 +111,9 @@ nova_libvirt_images_rbd_pool: nova-vms
 
 ## Common Ceph Overrides
 ceph_mons:
-  - 172.16.1.12
-  - 172.16.1.13
-  - 172.16.1.14
+   - 172.16.1.12
+   - 172.16.1.13
+   - 172.16.1.14
 
 ## Custom Ceph Configuration File (ceph.conf)
 # By default, your deployment host will connect to one of the mons defined above to
@@ -90,18 +132,20 @@ ceph_mons:
 ## Cinder
 # Ceph client user for cinder to connect to the ceph cluster
 cinder_ceph_client: cinder
-ceph_apt_repo_url_region: "www"  # or "eu" for Netherlands based mirror
-ceph_stable_release: infernalis
+ceph_pkg_source: distro
 cephx: true
-
-ssl_protocol: "ALL -SSLv2 -SSLv3"
-ssl_cipher_suite: "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS"
 
 # By default, openstack-ansible configures all OpenStack services to talk to
 # RabbitMQ over encrypted connections on port 5671. To opt-out of this default,
 # set the rabbitmq_use_ssl variable to 'false'. The default setting of 'true'
 # is highly recommended for securing the contents of RabbitMQ messages.
-rabbitmq_use_ssl: true
+rabbitmq_use_ssl: false
+
+# RabbitMQ management plugin is enabled by default, the guest user has been
+# removed for security reasons and a new userid 'monitoring' has been created
+# with the 'monitoring' user tag. In order to modify the userid, uncomment the
+# following and change 'monitoring' to your userid of choice.
+# rabbitmq_monitoring_userid: monitoring
 
 
 ## Additional pinning generator that will allow for more packages to be pinned as you see fit.
@@ -125,11 +169,14 @@ rabbitmq_use_ssl: true
 
 ## Example environment variable setup:
 # proxy_env_url: http://username:pa$$w0rd@10.10.10.9:9000/
-# no_proxy_env: "localhost,127.0.0.1,{% for host in groups['all_containers'] %}{{ hostvars[host]['container_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+# no_proxy_env: "localhost,127.0.0.1,{{ internal_lb_vip_address }},{{ external_lb_vip_address }},{% for host in groups['all_containers'] %}{{ hostvars[host]['container_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
 # global_environment_variables:
 #   HTTP_PROXY: "{{ proxy_env_url }}"
 #   HTTPS_PROXY: "{{ proxy_env_url }}"
 #   NO_PROXY: "{{ no_proxy_env }}"
+#   http_proxy: "{{ proxy_env_url }}"
+#   https_proxy: "{{ proxy_env_url }}"
+#   no_proxy: "{{ no_proxy_env }}"
 
 
 ## SSH connection wait time
@@ -145,46 +192,121 @@ haproxy_use_keepalived: True
 # HAProxy Keepalived configuration (cf. documentation)
 # Make sure that this is set correctly according to the CIDR used for your
 # internal and external addresses.
-haproxy_keepalived_external_vip_cidr: "{{external_lb_vip_address}}/25"
-haproxy_keepalived_internal_vip_cidr: "{{internal_lb_vip_address}}/24"
-haproxy_keepalived_external_interface: eth1
+haproxy_keepalived_external_vip_cidr: "130.239.46.130/32"
+haproxy_keepalived_internal_vip_cidr: "{{internal_lb_vip_address}}/32"
+haproxy_keepalived_external_interface: eno4
 haproxy_keepalived_internal_interface: br-mgmt
+
+haproxy_user_ssl_cert: /etc/openstack_deploy/custom/certs/hpc2n_cloud_snic_se.crt
+haproxy_user_ssl_key: /etc/openstack_deploy/custom/certs/hpc2n_cloud_snic_se.key
+haproxy_user_ssl_ca_cert: /etc/openstack_deploy/custom/certs/DigiCertCA.crt
 
 # Defines the default VRRP id used for keepalived with haproxy.
 # Overwrite it to your value to make sure you don't overlap
 # with existing VRRPs id on your network. Default is 10 for the external and 11 for the
 # internal VRRPs
-haproxy_keepalived_external_virtual_router_id: 110
-haproxy_keepalived_internal_virtual_router_id: 111
+# haproxy_keepalived_external_virtual_router_id:
+# haproxy_keepalived_internal_virtual_router_id:
 
 # Defines the VRRP master/backup priority. Defaults respectively to 100 and 20
-haproxy_keepalived_priority_master: 100
-haproxy_keepalived_priority_backup: 20
+# haproxy_keepalived_priority_master:
+# haproxy_keepalived_priority_backup:
+
+# Keepalived default IP address used to check its alive status (IPv4 only)
+# keepalived_ping_address: "193.0.14.129"
 
 # All the previous variables are used in a var file, fed to the keepalived role.
 # To use another file to feed the role, override the following var:
 # haproxy_keepalived_vars_file: 'vars/configs/keepalived_haproxy.yml'
 
-haproxy_ssl: True
-haproxy_user_ssl_cert: /etc/openstack_deploy/cert/ssc-endpoint_hpc2n_umu_se.crt
-haproxy_user_ssl_key: /etc/openstack_deploy/cert/ssc-endpoint_hpc2n_umu_se.key
-haproxy_user_ssl_ca_cert: /etc/openstack_deploy/cert/cacert.crt
+## Host security hardening
+# The openstack-ansible-security role provides security hardening for hosts
+# by applying security configurations from the STIG. Hardening is disabled by
+# default, but an option to opt-in is available by setting the following
+# variable to 'true'.
+# Docs: http://docs.openstack.org/developer/openstack-ansible-security/
+# apply_security_hardening: true
 
-nova_force_config_drive: False
+ssl_protocol: "ALL -SSLv2 -SSLv3"
+ssl_cipher_suite: "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS"
 
-nova_nova_conf_overrides:
-  DEFAULT:
-    nova_scheduler_default_filters: "RetryFilter,AvailabilityZoneFilter,RamFilter,ComputeFilter,ComputeCapabilitiesFilter,ImagePropertiesFilter,ServerGroupAntiAffinityFilter,ServerGroupAffinityFilter,AggregateCoreFilter,AggregateDiskFilter,AggregateInstanceExtraSpecsFilter"
-  libvirt:
-    live_migration_uri: qemu+ssh://nova@%s/system?keyfile=/var/lib/nova/.ssh/id_rsa&no_verify=1
+keystone_service_publicuri_proto: https
 
-# Service usernames
-ceilometer_service_user_name: ceilometer-hpc2n
-nova_service_user_name: nova-hpc2n
-neutron_service_user_name: neutron-hpc2n
-glance_service_user_name: glance-hpc2n
-keystone_service_user_name: keystone-hcp2n
-cinder_service_user_name: cinder-hcp2n
-aodh_service_user_name: aodh-hpc2n
-heat_service_user_name: heat-hpc2n
-swift_service_user_name: swift-hpc2n
+# your SSL certificate is likely using a DNS name, so this must be set
+horizon_server_name: hpc2n.cloud.snic.se
+
+# Horizon must refer to a name matching the SSL cert
+# in this test environment, both keystone and Horizon shared a common DNS name
+horizon_keystone_host: "{{ horizon_server_name }}"
+horizon_keystone_endpoint: "{{ keystone_service_publicuri_proto }}://{{ horizon_server_name }}:5000/v3"
+
+# Multple region configuration
+#horizon_available_regions:
+#   - { url: "https://hpc2n.cloud.snic.se:5000/v3", name: "HPC2N" }
+#   - { url: "https://c3se.cloud.snic.se:5000/v3", name: "C3SE" }
+#   - { url: "https://uppmax.cloud.snic.se:5000/v3", name: "UPPMAX" }
+
+
+# Ensure that the public endpoint registered for Keystone uses the right name
+keystone_public_endpoint: "{{ keystone_service_publicuri_proto }}://{{ horizon_server_name }}:5000"
+keystone_service_publicurl: "{{ horizon_keystone_endpoint }}"
+
+# update mapping set rules = '"[{\\"remote\\": [{\\"type\\": \\"uid\\"}], \\"local\\": [{\\"user\\": {\\"domain\\": {\\"name\\": \\"snic\\"}, \\"type\\": \\"local\\",\\"name\\": \\"{0}\\"}}]}]"';
+
+horizon_websso_initial_choice: "saml2"
+
+keystone_sp:
+  cert_duration_years: 5
+  trusted_dashboard_list:
+    - "https://c3se.cloud.snic.se/auth/websso/"
+    - "https://hpc2n.cloud.snic.se/auth/websso/"
+  trusted_idp_list:
+    - name: 'SUPR'
+      entity_ids:
+        - 'https://hpc2n.cloud.snic.se:8443/saml2/idp/metadata.php'
+      metadata_uri: 'https://hpc2n.cloud.snic.se:8443/saml2/idp/metadata.php?output=xml'
+      metadata_file: 'metadata-supr-idp.xml'
+      metadata_reload: 1800
+      protocols:
+        - name: saml2
+          mapping:
+            name: supr-idp-mapping
+            rules:
+              - remote:
+                  - type: uid
+                local:
+                  - user:
+                      domain:
+                        name: snic
+                      name: '{0}'
+                      type: local
+          attributes:
+            - name: 'urn:oid:0.9.2342.19200300.100.1.1'
+              id: uid
+
+horizon_custom_uploads:
+   logo:
+     src: "/etc/openstack_deploy/custom/SNICcloudLogo.001.png"
+     dest: "img/logo.png"
+   logo_splash:
+     src: "/etc/openstack_deploy/custom/SNICcloudLogo.001.png"
+     dest: "img/logo-splash.png"
+
+haproxy_extra_services:
+  - service:
+      haproxy_service_name: suprauth_service
+      haproxy_backend_nodes: "{{ groups['suprauth_all'] | default([])  }}"
+      haproxy_port: 8443
+      haproxy_ssl: true
+      haproxy_balance_type: "http"
+      haproxy_backend_options:
+        - "httpchk HEAD /"
+
+horizon_session_timeout: 28800
+
+_horizon_available_themes:
+  default:
+    theme_name: "default"
+    theme_label: "Default"
+    theme_path: "themes/default"
+
