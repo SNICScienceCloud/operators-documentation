@@ -314,6 +314,52 @@ Created with:
 
     neutron subnet-create  --allocation-pool start=130.239.81.1,end=130.239.81.253 --gateway 130.239.81.254 --disable-dhcp --name public-81 --ip-version 4 --dns-nameserver 130.239.1.90 *ID_OF_PUBLIC_NETWORK* 130.239.81.0/24
 
+## Ceilometer
+
+### Setup mogoDB
+
+MongoDB is not setup by the openstack ansible scripts
+
+The mongoDB dabase is installed on the controller node u-mn-24 using the following commands
+
+    apt-get install mongodb-server mongodb-clients python-pymongo
+    sed -i 's/127.0.0.1/172.16.2.2/g' /etc/mongodb.conf
+    echo smallfiles = true >> /etc/mongodb.conf
+    service mongodb restart
+
+Get **CEILOMETER_DBPASS** from `ceilometer_container_db_password` in `/etc/openstack_deploy/user_secrets.yml` on deploy host `u-sn-o38`
+
+    mongo --host 172.16.2.2 --eval '
+    db = db.getSiblingDB("ceilometer");
+    db.addUser({user: "ceilometer",
+    pwd: "**CEILOMETER_DBPASS**",
+    roles: [ "readWrite", "dbAdmin" ]})'
+
+### Database cleanup
+
+Configure how long the samples and events should be stored in the database.
+
+We will only keep them for 7 days.
+
+On the deploy host edit /etc/ansible/roles/os_ceilometer/templates/ceilometer.conf.j2. Add metering_time_to_live and event_time_to_live
+
+    --- ceilometer.conf.j2.old	2017-02-14 11:25:45.470152855 +0100
+    +++ ceilometer.conf.j2.new	2017-02-14 11:25:54.481702171 +0100
+    @@ -106,6 +106,8 @@
+     [database]
+     metering_connection = {{ ceilometer_connection_string }}
+     event_connection = {{ ceilometer_connection_string }}
+    +metering_time_to_live = {{ ceilometer_metering_time_to_live }}
+    +event_time_to_live = {{ ceilometer_event_time_to_live }}
+     
+     {% if ceilometer_gnocchi_enabled | bool %}
+      [dispatcher_gnocchi]
+
+Then edit your user_variables.yml and add the variables
+
+  ceilometer_metering_time_to_live: 604800
+  ceilometer_event_time_to_live: 604800
+
 ## Glance
 
 ### Flavors
