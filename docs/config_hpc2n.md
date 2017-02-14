@@ -355,10 +355,10 @@ On the deploy host edit /etc/ansible/roles/os_ceilometer/templates/ceilometer.co
      {% if ceilometer_gnocchi_enabled | bool %}
       [dispatcher_gnocchi]
 
-Then edit your user_variables.yml and add the variables
+Edit your user_variables.yml and add the variables
 
-  ceilometer_metering_time_to_live: 604800
-  ceilometer_event_time_to_live: 604800
+   ceilometer_metering_time_to_live: 604800
+   ceilometer_event_time_to_live: 604800
 
 ## Glance
 
