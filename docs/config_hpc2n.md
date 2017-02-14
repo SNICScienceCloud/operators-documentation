@@ -360,6 +360,36 @@ Edit your user_variables.yml and add the variables
     ceilometer_metering_time_to_live: 604800
     ceilometer_event_time_to_live: 604800
 
+## Horizon
+
+### Drop down patch for regions
+
+To get a drop down menu for all regions that works with saml2 we need to replace a file in all horizon containsers.
+
+Run the following commands in all horizon containers.
+
+    cp /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html.orig
+    
+    cat - <<EOF > /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+        <span class="region-title">HPC2N</span>
+        <span class="fa fa-caret-down"></span>
+      </a>
+      <ul id="region_list" class="dropdown-menu dropdown-menu-right">
+           <li>
+             <a href="https://c3se.cloud.snic.se/project">
+               C3SE
+             </a>
+           </li>
+           <li>
+             <a href="https://uppmax.cloud.snic.se/project">
+               UPPMAX
+             </a>
+           </li>
+      </ul>
+    EOF
+
+
 ## Glance
 
 ### Flavors
