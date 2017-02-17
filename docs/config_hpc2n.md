@@ -314,6 +314,21 @@ Created with:
 
     neutron subnet-create  --allocation-pool start=130.239.81.1,end=130.239.81.253 --gateway 130.239.81.254 --disable-dhcp --name public-81 --ip-version 4 --dns-nameserver 130.239.1.90 *ID_OF_PUBLIC_NETWORK* 130.239.81.0/24
 
+## Galera
+
+### Galera backup
+
+Create a backup script in all galera containers
+
+
+    cat - <<EOF > /etc/cron.hourly/mysqldump
+    #!/bin/sh
+    /usr/bin/mysqldump --single-transaction --all-databases | /bin/gzip -c > /var/backup/sqldump.`date +"%H"`.sql.gz
+    EOF
+
+    chmod +x /etc/cron.hourly/mysqldump
+
+
 ## Ceilometer
 
 ### Setup mogoDB
@@ -362,7 +377,7 @@ Edit your user_variables.yml and add the variables
 
 ## Horizon
 
-### Drop down patch for regions
+### "Drop down" patch for regions
 
 To get a drop down menu for all regions that works with saml2 we need to replace a file in all horizon containsers.
 
@@ -389,6 +404,35 @@ Run the following commands in all horizon containers.
       </ul>
     EOF
 
+### Fix for broken POLICY_CHECK_FUNCTION check
+
+The version of horizon checked out by openstack-ansible has a bug causing the Admin panel to show for non admin users.
+
+This bug is solved in later versions of horizon but you can do a quickfix by editing /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashboard/dashboards/admin/dashboard.py
+
+Replace
+
+    class Admin(horizon.Dashboard):
+        name = _("Admin")
+        slug = "admin"
+
+        if getattr(settings, 'POLICY_CHECK_FUNCTION', None):
+            policy_rules = (('identity', 'admin_required'),
+                            ('image', 'context_is_admin'),
+                            ('volume', 'context_is_admin'),
+                            ('compute', 'context_is_admin'),
+                            ('network', 'context_is_admin'),
+                            ('orchestration', 'context_is_admin'),)
+        else:
+            permissions = (tuple(utils.get_admin_permissions()),)
+
+With
+
+    class Admin(horizon.Dashboard):
+        name = _("Admin")
+        slug = "admin"
+
+        permissions = (tuple(utils.get_admin_permissions()),)
 
 ## Glance
 
