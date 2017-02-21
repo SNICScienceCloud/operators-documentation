@@ -379,7 +379,8 @@ Edit your user_variables.yml and add the variables
 
 ### "Drop down" patch for regions
 
-To get a drop down menu for all regions that works with saml2 we need to replace a file in all horizon containsers.
+Multi-keystone region support in horizon does not work with saml2.
+To "fix" this we need to replace a file in all horizon containsers.
 
 Run the following commands in all horizon containers.
 
@@ -408,6 +409,8 @@ Run the following commands in all horizon containers.
     EOF
 
 ### Move dropdown to the left
+
+The region dropdown is hard to see all the way to the left so we move it to the right.
 
 Patch /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashboard/templates/header/_header.html
 

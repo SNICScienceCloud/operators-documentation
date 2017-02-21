@@ -316,8 +316,7 @@ ceilometer_db_ip: 172.16.2.2
 ceilometer_metering_time_to_live: 604800
 ceilometer_event_time_to_live: 604800
 
-cinder_ceilometer_enabled: True
-glance_ceilometer_enabled: True
-nova_ceilometer_enabled: True
-neutron_ceilometer_enabled: True
+cinder_ceilometer_enabled: true
+glance_ceilometer_enabled: true
+nova_ceilometer_enabled: true
 
