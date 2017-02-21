@@ -386,23 +386,46 @@ Run the following commands in all horizon containers.
     cp /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html.orig
     
     cat - <<EOF > /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html
+    {% load i18n %}
+    
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
         <span class="region-title">HPC2N</span>
         <span class="fa fa-caret-down"></span>
       </a>
-      <ul id="region_list" class="dropdown-menu dropdown-menu-right">
+      <ul id="region_list" class="dropdown-menu dropdown-menu-left">
+           <li class="dropdown-header">{% trans "Regions:" %}</li>
            <li>
              <a href="https://c3se.cloud.snic.se/project">
                C3SE
              </a>
            </li>
            <li>
-             <a href="https://uppmax.cloud.snic.se/project">
-               UPPMAX
+             <a href="https://hpc2n.cloud.snic.se/project">
+               HPC2N
              </a>
            </li>
       </ul>
     EOF
+
+### Move dropdown to the left
+
+Patch /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashboard/templates/header/_header.html
+
+    --- header/_header.html.orig	2017-02-21 11:13:12.357429096 +0100
+    +++ header/_header.html	2017-02-21 11:17:19.858355731 +0100
+    @@ -26,11 +26,11 @@
+         <div class="collapse navbar-collapse" id="navbar-collapse">
+           <ul class="nav navbar-nav">
+             {% include "header/_context_selection.html" %}
+    +        {% include "header/_region_selection.html" %}
+           </ul>
+     
+           <ul class="nav navbar-nav navbar-right">
+             {% include "header/_user_menu.html" %}
+    -        {% include "header/_region_selection.html" %}
+           </ul>
+         </div><!-- /.navbar-collapse -->
+       </div><!-- /.container-fluid -->
 
 ### Fix for broken POLICY_CHECK_FUNCTION check
 
