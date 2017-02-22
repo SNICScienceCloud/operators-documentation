@@ -310,9 +310,9 @@ The floating IPv4 network pool is a full class C network (130.239.81.0/24) with 
 
 Created with:
 
-    neutron net-create public --shared --router:external=True --provider:network_type vlan --provider:segmentation_id 3 --provider:physical_network vlan
+    neutron net-create "Public External IPv4 Network" --shared --router:external=True --provider:network_type vlan --provider:segmentation_id 3 --provider:physical_network vlan
 
-    neutron subnet-create  --allocation-pool start=130.239.81.1,end=130.239.81.253 --gateway 130.239.81.254 --disable-dhcp --name public-81 --ip-version 4 --dns-nameserver 130.239.1.90 *ID_OF_PUBLIC_NETWORK* 130.239.81.0/24
+    neutron subnet-create  --allocation-pool start=130.239.81.1,end=130.239.81.253 --gateway 130.239.81.254 --disable-dhcp --name "Public External IPv4 Subnet" --ip-version 4 --dns-nameserver 130.239.1.90 *ID_OF_PUBLIC_NETWORK* 130.239.81.0/24
 
 ## Galera
 
