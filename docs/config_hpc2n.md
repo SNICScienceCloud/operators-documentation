@@ -312,7 +312,15 @@ Created with:
 
     neutron net-create "Public External IPv4 Network" --shared --router:external=True --provider:network_type vlan --provider:segmentation_id 3 --provider:physical_network vlan
 
-    neutron subnet-create  --allocation-pool start=130.239.81.1,end=130.239.81.253 --gateway 130.239.81.254 --disable-dhcp --name "Public External IPv4 Subnet" --ip-version 4 --dns-nameserver 130.239.1.90 *ID_OF_PUBLIC_NETWORK* 130.239.81.0/24
+    neutron subnet-create  --allocation-pool start=130.239.81.1,end=130.239.81.253 --gateway 130.239.81.254 --disable-dhcp --name "Public External IPv4 Subnet" --ip-version 4 --dns-nameserver 130.239.1.90 *ID_OF_PUBLIC_NETWORK* 130.239.81.0/24A
+
+### IPv6 Networking using external DHCPv6
+
+We a very large IPv6 network (2001:6b0:e:4081::/64) for the cloud.
+Currently it is one shared network but we will try to use prefix deligation to get a subnet for each project later.
+
+    neutron net-create "Public External IPv6 Network" --shared --router:external=True --provider:network_type vlan --provider:segmentation_id 5 --provider:physical_network vlan
+    neutron subnet-create --ipv6_address_mode=slaac --name "Public External IPv6 Subnet" --ip-version 6 --dns-nameserver 2001:6b0:e:5::2 "Public External IPv6 Network" 2001:6b0:e:4081::/64
 
 ## Galera
 
