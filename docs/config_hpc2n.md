@@ -508,3 +508,17 @@ Do not just copy the block because it will fail to fecth some of the images.
     rm coreos_production_openstack_image.img
 
 
+## Gallera
+
+### Database backup
+
+We run a simple backup script in each gallera container that makes a dump of the database every hour.
+
+    cat - <<EOF > /etc/cron.hourly/mysqldump
+    #!/bin/sh
+    
+    /usr/bin/mysqldump --single-transaction --all-databases | /bin/gzip -c > /var/backup/sqldump.`date +"%H"`.sql.gz
+    EOF
+
+    chmod +x /etc/cron.hourly/mysqldump
+
