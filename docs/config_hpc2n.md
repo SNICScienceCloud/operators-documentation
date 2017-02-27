@@ -392,12 +392,14 @@ To "fix" this we need to replace a file in all horizon containsers.
 Run the following commands in all horizon containers.
 
     cp /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html.orig
-    
+
+    REGION=HPC2N
+
     cat - <<EOF > /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html
     {% load i18n %}
     
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-        <span class="region-title">HPC2N</span>
+        <span class="region-title">$REGION</span>
         <span class="fa fa-caret-down"></span>
       </a>
       <ul id="region_list" class="dropdown-menu dropdown-menu-left">

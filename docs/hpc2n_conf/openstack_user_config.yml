@@ -348,7 +348,6 @@ global_overrides:
         range: "1:1000"
         net_name: "vlan"
 
-
 #
 # Level: shared-infra_hosts (required)
 # List of target hosts on which to deploy shared infrastructure services
@@ -903,19 +902,19 @@ haproxy_hosts:
 metering-infra_hosts:
   u-mn-o24:
     ip: 130.239.46.155
-  u-mn-o25:
-    ip: 130.239.46.156
-  u-mn-o26:
-    ip: 130.239.46.157
+#  u-mn-o25:
+#    ip: 130.239.46.156
+#  u-mn-o26:
+#    ip: 130.239.46.157
 
 # gnocchi (telemetry metrics storage)
-metrics_hosts:
-  u-mn-o24:
-    ip: 130.239.46.155
-  u-mn-o25:
-    ip: 130.239.46.156
-  u-mn-o26:
-    ip: 130.239.46.157
+#metrics_hosts:
+#  u-mn-o24:
+#    ip: 130.239.46.155
+#  u-mn-o25:
+#    ip: 130.239.46.156
+#  u-mn-o26:
+#    ip: 130.239.46.157
 
 # nova api, conductor, etc services
 compute-infra_hosts:

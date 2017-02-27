@@ -292,6 +292,7 @@ horizon_custom_uploads:
      src: "/etc/openstack_deploy/custom/SNICcloudLogo.001.png"
      dest: "img/logo-splash.png"
 
+
 haproxy_extra_services:
   - service:
       haproxy_service_name: suprauth_service
@@ -310,7 +311,6 @@ _horizon_available_themes:
     theme_label: "Default"
     theme_path: "themes/default"
 
-
 ceilometer_db_type: mongodb
 ceilometer_db_ip: 172.16.2.2
 ceilometer_metering_time_to_live: 604800
@@ -319,4 +319,3 @@ ceilometer_event_time_to_live: 604800
 cinder_ceilometer_enabled: true
 glance_ceilometer_enabled: true
 nova_ceilometer_enabled: true
-
