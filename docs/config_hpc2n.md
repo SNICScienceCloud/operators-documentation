@@ -123,7 +123,7 @@ All stuff is not yet fixed with puppet so after the initial installation of the 
 
 ## Openstack Ansible
 
-The storage node u-sn-o38 is also used as deployment-host for openstack-asible.
+The storage node u-sn-o38 is also used as deployment-host for openstack-ansible.
 Kerberos is used for access to destination hosts. SSH-Keys are used for containers.
 
 The rest of the setup follows openstack-ansible refrence manual for installation.
