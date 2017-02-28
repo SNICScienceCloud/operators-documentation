@@ -466,6 +466,24 @@ With
 
         permissions = (tuple(utils.get_admin_permissions()),)
 
+
+### Remove Download of RCv2 from Access & Security page
+
+We do not support v2 authentication. Remove it so the users do not get confused.
+
+Edit /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashboard/dashboards/project/access_and_security/api_access/tables.py
+
+    --- tables.py.orig	2017-02-28 14:06:18.204843707 +0100
+    +++ tables.py	2017-02-28 14:06:28.876881488 +0100
+    @@ -107,5 +107,5 @@
+             name = "endpoints"
+             verbose_name = _("API Endpoints")
+             multi_select = False
+    -        table_actions = (DownloadOpenRCv2, DownloadOpenRC, DownloadEC2,
+    +        table_actions = (DownloadOpenRC, DownloadEC2,
+                              ViewCredentials, RecreateCredentials)
+
+
 ## Glance
 
 ### Flavors
