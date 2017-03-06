@@ -1,8 +1,8 @@
 site_name: SNIC Science Cloud
 pages:
   - Home: index.md
-  - Configuration: config_common.md
   - HPC2N Region: config_hpc2n.md
+  - C3SE Region: config_c3se.md
   - Reference documentation: ref_doc.md
   - About: about.md
 theme: readthedocs
