@@ -498,27 +498,4 @@ Flavors are sorted by the ID, so set them in the correct order.
 
 ### Images
 
-These are the ones used at installation time, make sure to use the latest available and update description.
-Do not just copy the block because it will fail to fecth some of the images.
-
-    wget https://cloud-images.ubuntu.com/xenial/20170128/xenial-server-cloudimg-amd64-disk1.img
-    glance image-create --progress --file xenial-server-cloudimg-amd64-disk1.img --visibility public --name "Ubuntu 16.04 LTS (Xenial Xerus) Daily Build [20170128]" --disk-format qcow2 --container-format bare --min-disk 3
-    rm xenial-server-cloudimg-amd64-disk1.img
-    
-    wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1611.qcow2
-    glance image-create --progress --file CentOS-7-x86_64-GenericCloud-1611.qcow2 --visibility public --name "Centos 7 [20170117]" --disk-format qcow2 --container-format bare --min-disk 8
-    rm CentOS-7-x86_64-GenericCloud-1611.qcow2
-    
-    wget http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
-    glance image-create --progress --file cirros-0.3.4-x86_64-disk.img --visibility public --name "Cirros 0.3.4 [20150507]" --disk-format qcow2 --container-format bare --min-disk 1
-    rm cirros-0.3.4-x86_64-disk.img
-    
-    wget https://cloud-images.ubuntu.com/trusty/20170202/trusty-server-cloudimg-amd64-disk1.img
-    glance image-create --progress --file trusty-server-cloudimg-amd64-disk1.img --visibility public --name "Ubuntu 14.04 LTS (Trusty Tahr) Daily Build [20170202]" --disk-format qcow2 --container-format bare --min-disk 3
-    rm trusty-server-cloudimg-amd64-disk1.img
-    
-    wget https://stable.release.core-os.net/amd64-usr/1235.9.0/coreos_production_openstack_image.img.bz2
-    bzip2 -d coreos_production_openstack_image.img.bz2
-    glance image-create --progress --file coreos_production_openstack_image.img --visibility public --name "CoreOS 1235.9.0 [20170202]" --disk-format qcow2 --container-format bare --min-disk 9
-    rm coreos_production_openstack_image.img
-
+The images are kept up to date using a cronjob and a [bash script](scripts/update_images_1.1.tgz)
