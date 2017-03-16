@@ -498,4 +498,4 @@ Flavors are sorted by the ID, so set them in the correct order.
 
 ### Images
 
-The images are kept up to date using a cronjob and a [bash script](scripts/update_images_1.1.tgz)
+The images are kept up to date using a cronjob and a [bash script](scripts/update_images_1.2.tgz)
