@@ -319,3 +319,5 @@ ceilometer_event_time_to_live: 604800
 cinder_ceilometer_enabled: true
 glance_ceilometer_enabled: true
 nova_ceilometer_enabled: true
+
+neutron_quota_floatingip: 5

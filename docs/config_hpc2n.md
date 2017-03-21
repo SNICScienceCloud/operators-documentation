@@ -499,3 +499,15 @@ Flavors are sorted by the ID, so set them in the correct order.
 ### Images
 
 The images are kept up to date using a cronjob and a [bash script](scripts/update_images_1.2.tgz)
+
+## Quota
+
+We have made some changes to the default quota
+
+Numer of vCPU:s is increased from 20 to 40
+
+    nova quota-class-update default --cores 40
+    
+Number of floating ips is limited from 50 to 5 in user_varibables.yml
+
+    neutron_quota_floatingip: 5
