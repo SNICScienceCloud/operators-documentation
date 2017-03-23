@@ -494,7 +494,7 @@ Flavors are sorted by the ID, so set them in the correct order.
     openstack flavor create --ram 2048 --disk 20 --vcpus 1 --id 8d704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small
     openstack flavor create --ram 4096 --disk 40 --vcpus 2 --id 8e704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium
     openstack flavor create --ram 8192 --disk 80 --vcpus 4 --id 8f704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large
-    openstack flavor create --ram 16384 --disk 160 --vcpus 8 --id 8g704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge
+    openstack flavor create --ram 16384 --disk 160 --vcpus 8 --id 90704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge
 
 ### Images
 
