@@ -22,7 +22,7 @@ If your openstack-ansible does not include fixes for them then you can download 
 
 ## Hardware setup
 
-### Compute nodes x 10
+### Compute nodes x 40
 
 - HP DL170 G6
 - 2 x 4 Core Intel(R) Xeon(R) CPU E5520 @ 2.27GHz
@@ -32,7 +32,7 @@ If your openstack-ansible does not include fixes for them then you can download 
 ### Control nodes x 3
 
 - Dell PowerEdge R720xd
-- 1 x 6 Core Intel(R) Xeon(R) CPU E5-2630 @ 2.30GHz
+- 2 x 6 Core Intel(R) Xeon(R) CPU E5-2630 @ 2.30GHz
 - 96G RAM
 - 2 x 200G SAS Disks in a RAID 1 mirror.
 
