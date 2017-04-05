@@ -3,6 +3,7 @@ pages:
   - Home: index.md
   - HPC2N Region: config_hpc2n.md
   - C3SE Region: config_c3se.md
+  - System administration: sysadmin_common.md
   - Reference documentation: ref_doc.md
   - About: about.md
 theme: readthedocs
