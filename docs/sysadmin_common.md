@@ -20,7 +20,7 @@ Changing a projects quota
 
 Disable services in haproxy
 
-   echo "show stat" | nc -U /var/run/haproxy.stat | grep `hostname -s` | cut -d, -f1,2 | tr , / | xargs -i -n1 sh -c "echo disable server {} | nc -U /var/run/haproxy.stat"
+    echo "show stat" | nc -U /var/run/haproxy.stat | grep `hostname -s` | cut -d, -f1,2 | tr , / | xargs -i -n1 sh -c "echo disable server {} | nc -U /var/run/haproxy.stat"
 
 Check that they are disabled
 
@@ -50,13 +50,13 @@ Watch status on the {SERVER_NAME} compute node
 
 Wait until empty, then update pagackes of  {SERVER_NAME}
 
-   apt-get update; apt-get -y dist-upgrade; apt -y autoremove
+    apt-get update; apt-get -y dist-upgrade; apt -y autoremove
 
 Make sure that no vm:s are running on {SERVER_NAME}
 
-   virsh list
+    virsh list
 
 Then reboot  {SERVER_NAME}
 
-   reboot
+    reboot
 
