@@ -52,7 +52,7 @@ Make sure that the controller is up and in sync with galera before you continue 
     root@ansible_deploy_host: #
         ansible galera_container -s -m shell -a 'mysql -e "SHOW STATUS LIKE \"wsrep_cluster%\""'
 
-In the output, **wsrep_cluster_size should be 3** and the **wsrep_cluster variables should be the same** in all three databases.
+In the output, **wsrep_cluster_size** should be **3** and the **wsrep_cluster** variables should be **the same in all** three databases.
 
     xxxxxx_galera_container | SUCCESS | rc=0 >>
     Variable_name   Value
@@ -111,3 +111,39 @@ When the compute_host is rebooted, enable it again in the utility container
 
     root@utility_container: # 
         nova host-update --maintenance disable $compute_host
+
+### Ceph Storage hosts
+
+Make sure that the health is OK
+
+    root@ceph_storage_host: #
+        ceph health
+        HEALTH_OK
+
+Set the noout flag on the OSD to prevent Ceph from start rebuilding OSDs while you reboot.
+
+    root@ceph_storage_host: #
+        ceph osd set noout
+
+Patch the os and reboot
+
+    root@ceph_storage_host: #
+        apt-get update
+        apt-get -y dist-upgrade
+        apt -y autoremove
+
+Wait for the host to reboot and resync.. When this is complete the only error should be that the noout flag is set.
+
+    root@ceph_storage_host: #
+        ceph health
+        HEALTH_WARN noout flag(s) set
+
+
+Then you can proceed with the next Ceph Storage host.
+
+After all storage hosts are patched you can unset the OSD noout flag to resume normal operations.
+
+    root@ceph_storage_host: #
+        ceph osd unset noout
+
+
