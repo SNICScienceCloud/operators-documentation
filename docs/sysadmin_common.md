@@ -131,6 +131,7 @@ Patch the os and reboot
         apt-get update
         apt-get -y dist-upgrade
         apt -y autoremove
+        reboot
 
 Wait for the host to reboot and resync.. When this is complete the only error should be that the noout flag is set.
 
