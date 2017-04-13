@@ -47,6 +47,34 @@ Then reboot the controller node
     root@controller_host: #
         reboot
 
+Make sure that the controller is up and in sync with gallera before you continue with the next controller
+
+    root@ansible_deploy_host: #
+          ansible galera_container -s -m shell -a 'mysql -e "SHOW STATUS LIKE \"wsrep_cluster%\""'
+
+Make sure wsrep_cluster_size is 3 and that wsrep_cluster_conf_id is the same in all three databases.
+
+	xxxxxx_galera_container | SUCCESS | rc=0 >>
+	Variable_name   Value
+	**wsrep_cluster_conf_id   51**
+	**wsrep_cluster_size      3**
+	wsrep_cluster_state_uuid        2b482fcd-ee11-11e6-9629-b7460b5b7501
+	wsrep_cluster_status    Primary
+	
+	yyyyyy_galera_container-56991731 | SUCCESS | rc=0 >>
+	Variable_name   Value
+	**wsrep_cluster_conf_id   51**
+	**wsrep_cluster_size      3**
+	wsrep_cluster_state_uuid        2b482fcd-ee11-11e6-9629-b7460b5b7501
+	wsrep_cluster_status    Primary
+	
+	zzzzzz_galera_container-7561ce0c | SUCCESS | rc=0 >>
+	Variable_name   Value
+	**wsrep_cluster_conf_id   51**
+	**wsrep_cluster_size      3**
+	wsrep_cluster_state_uuid        2b482fcd-ee11-11e6-9629-b7460b5b7501
+	wsrep_cluster_status    Primary
+
 ### Compute hosts
 
 Start live migrate on the utility container, and set host in maintenance mode
