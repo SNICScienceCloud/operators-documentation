@@ -40,9 +40,10 @@ Then reboot the controller node
 
 ### Compute nodes
 
-Start live migrate on the utility container
+Start live migrate on the utility container, and set host in maintenance mode
 
     server={SERVER_NAME}; nova host-evacuate-live $server; watch sh -c "'nova migration-list |grep $server |grep -v completed |grep `date +%F`'"
+    nova host-update --maintenance enable $server
 
 Watch status on the {SERVER_NAME} compute node
 
@@ -60,3 +61,6 @@ Then reboot  {SERVER_NAME}
 
     reboot
 
+When the server is rebooted, enable it again in the utility container
+
+    nova host-update --maintenance disable $server
