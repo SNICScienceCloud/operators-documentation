@@ -52,7 +52,7 @@ Make sure that the controller is up and in sync with galera before you continue 
     root@ansible_deploy_host: #
         ansible galera_container -s -m shell -a 'mysql -e "SHOW STATUS LIKE \"wsrep_cluster%\""'
 
-In the output *wsrep_cluster_size should be 3* and the *wsrep_ variables should be the same* in all three databases.
+In the output, **wsrep_cluster_size should be 3** and the **wsrep_cluster variables should be the same** in all three databases.
 
     xxxxxx_galera_container | SUCCESS | rc=0 >>
     Variable_name   Value
@@ -77,7 +77,7 @@ In the output *wsrep_cluster_size should be 3* and the *wsrep_ variables should 
 
 ### Compute hosts
 
-Start live migrate on the utility container, and set host in maintenance mode
+Start live migrate on the utility container. Then set host in maintenance mode
 
     root@utility_container: # 
         compute_host={COMPUTE_HOST};
