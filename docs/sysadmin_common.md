@@ -21,6 +21,7 @@ Changing a projects quota
 Disable services in haproxy
 
     root@controller_host: #
+
         echo "show stat" | nc -U /var/run/haproxy.stat | \
         grep `hostname -s` | cut -d, -f1,2 | tr , / | \
         xargs -i -n1 sh -c "echo disable compute_host {} | nc -U /var/run/haproxy.stat"
@@ -28,16 +29,19 @@ Disable services in haproxy
 Check that they are disabled
 
     root@controller_host: #
+
         echo "show stat" | nc -U /var/run/haproxy.stat | grep  `hostname -s`
 
 Upgrade packages in all containers
 
     root@controller_host: #
+
         lxc-ls -1 |xargs -i -n1 lxc-attach -n {} -- sh -c "apt-get update; apt-get -y dist-upgrade"
 
 Update packages on the controller base os
 
     root@controller_host: #
+
         apt-get update
         apt-get -y dist-upgrade
         apt -y autoremove
@@ -45,11 +49,13 @@ Update packages on the controller base os
 Then reboot the controller node
 
     root@controller_host: #
+
         reboot
 
 Make sure that the controller is up and in sync with galera before you continue with the next controller
 
     root@ansible_deploy_host: #
+
         ansible galera_container -s -m shell -a 'mysql -e "SHOW STATUS LIKE \"wsrep_cluster%\""'
 
 In the output, **wsrep_cluster_size** should be **3** and the **wsrep_cluster** variables should be **the same in all** three databases.
@@ -80,6 +86,7 @@ In the output, **wsrep_cluster_size** should be **3** and the **wsrep_cluster** 
 Start live migrate on the utility container. Then set host in maintenance mode
 
     root@utility_container: # 
+    
         compute_host={COMPUTE_HOST};
         nova host-evacuate-live $compute_host; 
         watch sh -c "'nova migration-list |grep $compute_host |grep -v completed |grep `date +%F`'"
@@ -88,11 +95,13 @@ Start live migrate on the utility container. Then set host in maintenance mode
 Watch status on the {COMPUTE_HOST} compute node
 
     root@compute_host: #
-        	watch virsh list
+
+        watch virsh list
 
 Wait until empty, then update pagackes of  {COMPUTE_HOST}
 
     root@compute_host: #
+
         apt-get update
         apt-get -y dist-upgrade
         apt -y autoremove
@@ -100,16 +109,19 @@ Wait until empty, then update pagackes of  {COMPUTE_HOST}
 Make sure that no vm:s are running on {COMPUTE_HOST}
 
     root@compute_host: #
+
         virsh list
 
 Then reboot  {COMPUTE_HOST}
 
     root@compute_host: #
+
         reboot
 
 When the compute_host is rebooted, enable it again in the utility container
 
     root@utility_container: # 
+
         nova host-update --maintenance disable $compute_host
 
 ### Ceph Storage hosts
@@ -117,27 +129,33 @@ When the compute_host is rebooted, enable it again in the utility container
 Make sure that the health is OK
 
     root@ceph_storage_host: #
+
         ceph health
-        HEALTH_OK
+
+    HEALTH_OK
 
 Set the noout flag on the OSD to prevent Ceph from start rebuilding OSDs while you reboot.
 
     root@ceph_storage_host: #
+
         ceph osd set noout
 
 Patch the os and reboot
 
     root@ceph_storage_host: #
+
         apt-get update
         apt-get -y dist-upgrade
         apt -y autoremove
         reboot
 
-Wait for the host to reboot and resync.. When this is complete the only error should be that the noout flag is set.
+Wait for the host to reboot and resync.. When this is complete the only warning should be that the noout flag is set.
 
     root@ceph_storage_host: #
+
         ceph health
-        HEALTH_WARN noout flag(s) set
+
+    HEALTH_WARN noout flag(s) set
 
 
 Then you can proceed with the next Ceph Storage host.
