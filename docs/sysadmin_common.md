@@ -16,51 +16,68 @@ Changing a projects quota
 
 ## Infrastructure OS Pathing
 
-### Controller nodes
+### Controller host
 
 Disable services in haproxy
 
-    echo "show stat" | nc -U /var/run/haproxy.stat | grep `hostname -s` | cut -d, -f1,2 | tr , / | xargs -i -n1 sh -c "echo disable server {} | nc -U /var/run/haproxy.stat"
+    root@controller_host: #
+    	echo "show stat" | nc -U /var/run/haproxy.stat | \
+        grep `hostname -s` | cut -d, -f1,2 | tr , / | \
+        xargs -i -n1 sh -c "echo disable compute_host {} | nc -U /var/run/haproxy.stat"
 
 Check that they are disabled
 
-    echo "show stat" | nc -U /var/run/haproxy.stat | grep  `hostname -s`
+    root@controller_host: #
+        echo "show stat" | nc -U /var/run/haproxy.stat | grep  `hostname -s`
 
 Upgrade packages in all containers
 
-    lxc-ls -1 |xargs -i -n1 lxc-attach -n {} -- sh -c "apt-get update; apt-get -y dist-upgrade"
+    root@controller_host: #
+        lxc-ls -1 |xargs -i -n1 lxc-attach -n {} -- sh -c "apt-get update; apt-get -y dist-upgrade"
 
-Update packages on the bas os
+Update packages on the controller base os
 
-    apt-get update; apt-get -y dist-upgrade; apt -y autoremove
+    root@controller_host: #
+        apt-get update
+        apt-get -y dist-upgrade
+        apt -y autoremove
 
 Then reboot the controller node
 
-    reboot
+    root@controller_host: #
+        reboot
 
-### Compute nodes
+### Compute hosts
 
 Start live migrate on the utility container, and set host in maintenance mode
 
-    server={SERVER_NAME}; nova host-evacuate-live $server; watch sh -c "'nova migration-list |grep $server |grep -v completed |grep `date +%F`'"
-    nova host-update --maintenance enable $server
+    root@utility_container: # 
+        compute_host={COMPUTE_HOST};
+        nova host-evacuate-live $compute_host; 
+        watch sh -c "'nova migration-list |grep $compute_host |grep -v completed |grep `date +%F`'"
+        nova host-update --maintenance enable $compute_host
 
-Watch status on the {SERVER_NAME} compute node
+Watch status on the {COMPUTE_HOST} compute node
 
-    watch virsh list
+    root@compute_host: #
+    	watch virsh list
 
-Wait until empty, then update pagackes of  {SERVER_NAME}
+Wait until empty, then update pagackes of  {COMPUTE_HOST}
 
-    apt-get update; apt-get -y dist-upgrade; apt -y autoremove
+    root@compute_host: #
+        apt-get update; apt-get -y dist-upgrade; apt -y autoremove
 
-Make sure that no vm:s are running on {SERVER_NAME}
+Make sure that no vm:s are running on {COMPUTE_HOST}
 
-    virsh list
+    root@compute_host: #
+        virsh list
 
-Then reboot  {SERVER_NAME}
+Then reboot  {COMPUTE_HOST}
 
-    reboot
+    root@compute_host: #
+        reboot
 
-When the server is rebooted, enable it again in the utility container
+When the compute_host is rebooted, enable it again in the utility container
 
-    nova host-update --maintenance disable $server
+    root@utility_container: # 
+        nova host-update --maintenance disable $compute_host
