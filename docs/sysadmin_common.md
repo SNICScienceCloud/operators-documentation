@@ -47,12 +47,12 @@ Then reboot the controller node
     root@controller_host: #
         reboot
 
-Make sure that the controller is up and in sync with gallera before you continue with the next controller
+Make sure that the controller is up and in sync with galera before you continue with the next controller
 
     root@ansible_deploy_host: #
         ansible galera_container -s -m shell -a 'mysql -e "SHOW STATUS LIKE \"wsrep_cluster%\""'
 
-Make sure **wsrep_cluster_size is 3** and that wsrep_ output is the same in all three databases.
+In the output *wsrep_cluster_size should be 3* and the *wsrep_ variables should be the same* in all three databases.
 
     xxxxxx_galera_container | SUCCESS | rc=0 >>
     Variable_name   Value
