@@ -18,7 +18,7 @@ If your openstack-ansible does not include fixes for them then you can download 
 
 ## System map
 
-[![System map](img/ssc_c3se.png)](ssc_c3se.png)
+[![System map](img/ssc_c3se.png)](ssc_c3se.dia)
 
 ## Hardware setup
 
@@ -54,72 +54,36 @@ All nodes run Ubuntu 16.04 and they are installed with Cobbler, the C3SE standar
 
 All stuff is not yet fixed with cobbler so after the initial installation of the host has completed we need to run some commands and then configure the networks.
 
-    mkdir /openstack
-    mkdir /var/lib/nova
+    # install default packages
+    pdsh -g cirruscompute apt-get install -y bridge-utils debootstrap ifenslave ifenslave-2.6 lsof lvm2 ntp ntpdate openssh-server sudo tcpdump vlan python iptables vim
 
-    mkfs.xfs /dev/rootvg/openstacklv; then
-    mkfs.xfs /dev/rootvg/novalv
-
-    cat - >> /etc/fstab <<EOF
-    /dev/rootvg/openstacklv	/openstack	xfs	nodev	0 2
-    /dev/rootvg/novalv	/var/lib/nova	xfs	nosuid,nodev	0 2
-    EOF
-
-    mount -a
-
-    cat - > /etc/apt/sources.list <<EOF
-    ###### Ubuntu Main Repos
-    deb http://archive.ubuntu.com/ubuntu/ xenial main restricted universe multiverse
-    ###### Ubunt:u Update Repos
-    deb http://archive.ubuntu.com/ubuntu/ xenial-security main restricted universe multiverse
-    deb http://archive.ubuntu.com/ubuntu/ xenial-updates main restricted universe multiverse
-    EOF
-
-
-    echo 'bonding' >> /etc/modules
-    echo '8021q' >> /etc/modules
-
-    apt-get install -y bridge-utils debootstrap ifenslave ifenslave-2.6 lsof lvm2 ntp openssh-server sudo tcpdump vlan
-
-    perl -pi -e 's,(.*?/varlv.*?\s+)(nosuid\,nodev),$1 defaults,' /etc/fstab
-    perl -pi -e 's,/home/syslog,/var/spool/rsyslog,' /etc/passwd
-
-    mount -o remount /var
+    # add required modules to /etc/modules
+    pdsh -g cirruscompute "echo 'bonding' >> /etc/modules"
+    pdsh -g cirruscompute "echo '8021q' >> /etc/modules"
+    
+    # copy hosts.allow
+    pdcp -g cirruscompute hosts.allow /etc/hosts.allow
 
 ### Management node post cobbler stuff
 
 All stuff is not yet fixed with cobbler so after the initial installation of the host has completed we need to run some commands and then configure the networks.
 
-    mkdir /openstack
+    # install default packages
+    pdsh -g cirruscompute apt-get install -y bridge-utils debootstrap ifenslave ifenslave-2.6 lsof lvm2 ntp ntpdate openssh-server sudo tcpdump vlan python iptables vim
 
-    lvcreate -n openstacklv -L20G lxc
+    # add required modules to /etc/modules
+    pdsh -g cirruscompute "echo 'bonding' >> /etc/modules"
+    pdsh -g cirruscompute "echo '8021q' >> /etc/modules"
 
-    mkfs.xfs /dev/lxc/openstacklv
-    cat - >> /etc/fstab <<EOF
-    /dev/lxc/openstacklv	/openstack	xfs	nodev	0 2
-    EOF
+    # copy hosts.allow
+    pdcp -g cirruscompute hosts.allow /etc/hosts.allow
 
-    mount -a
+    # also fix iptables-rules for internet-facing hosts
+    scp cirrus0-iptables.rules cirrus0:/etc/iptables.rules
+    scp cirrus1-iptables.rules cirrus1:/etc/iptables.rules
+    scp cirrus2-iptables.rules cirrus2:/etc/iptables.rules
 
-    cat - > /etc/apt/sources.list <<EOF
-    ###### Ubuntu Main Repos
-    deb http://archive.ubuntu.com/ubuntu/ xenial main restricted universe multiverse
-    ###### Ubunt:u Update Repos
-    deb http://archive.ubuntu.com/ubuntu/ xenial-security main restricted universe multiverse
-    deb http://archive.ubuntu.com/ubuntu/ xenial-updates main restricted universe multiverse
-    EOF
-
-
-    echo 'bonding' >> /etc/modules
-    echo '8021q' >> /etc/modules
-
-    apt-get install -y bridge-utils debootstrap ifenslave ifenslave-2.6 lsof lvm2 ntp openssh-server sudo tcpdump vlan
-
-    perl -pi -e 's,(.*?/varlv.*?\s+)(nosuid\,nodev),$1 defaults,' /etc/fstab
-    perl -pi -e 's,/home/syslog,/var/spool/rsyslog,' /etc/passwd
-
-    mount -o remount /var
-
+    
 ## Openstack Ansible
 
 The host cirrus-deploy is deployment-host for openstack-ansible.
@@ -129,8 +93,8 @@ The rest of the setup follows openstack-ansible refrence manual for installation
 
 The following configuraton files were used for deployment.
 
-- [openstack_user_config.yml](hpc2n_conf/openstack_user_config.yml)
-- [user_variables.yml](hpc2n_conf/user_variables.yml)
+- [openstack_user_config.yml](c3se_conf/openstack_user_config.yml)
+- [user_variables.yml](c3se_conf/user_variables.yml)
 
 
 ## Network
@@ -139,23 +103,24 @@ Linux-bridges are used for the for the vlan and vxlan traffic.
 
 ### Compute node interfaces
 
-/etc/network/interfaces.d/bridge.interfaces
+/etc/network/interfaces.d/lxc-net-bridge.cfg
 
     auto lxcbr0
     iface lxcbr0 inet static
-    address 10.0.3.1
-    netmask 255.255.255.0
-    # dnsmasq start and stop
-    post-up /usr/local/bin/lxc-system-manage iptables-create
-    post-up /usr/local/bin/lxc-system-manage dnsmasq-start || true
-    post-down /usr/local/bin/lxc-system-manage iptables-remove
-    post-down /usr/local/bin/lxc-system-manage dnsmasq-stop
-    bridge_fd 0
-    bridge_maxwait 0
-    bridge_ports none
-    bridge_hello 2
-    bridge_maxage 12
-    bridge_stp off
+        address 10.0.3.1
+        netmask 255.255.255.0
+        # dnsmasq start and stop
+        post-up /usr/local/bin/lxc-system-manage iptables-create
+        post-up /usr/local/bin/lxc-system-manage dnsmasq-start || true
+        post-down /usr/local/bin/lxc-system-manage iptables-remove
+        post-down /usr/local/bin/lxc-system-manage dnsmasq-stop
+        bridge_fd 0
+        bridge_maxwait 0
+        bridge_ports none
+        bridge_hello 2
+        bridge_maxage 12
+        bridge_stp off
+
 
 /etc/network/interfaces
 
@@ -197,7 +162,7 @@ Linux-bridges are used for the for the vlan and vxlan traffic.
     bridge_waitport 0
     bridge_fd 0
     bridge_ports enp5s0f1.1033
-    address 10.33.2.29
+    address 10.33.2.X
     netmask 255.255.0.0
     gateway 10.33.1.185
     dns-nameservers 129.16.1.53 129.16.2.53
@@ -215,7 +180,7 @@ Linux-bridges are used for the for the vlan and vxlan traffic.
     bridge_waitport 0
     bridge_fd 0
     bridge_ports enp5s0f1.1034
-    address 10.34.2.29
+    address 10.34.2.X
     netmask 255.255.0.0
 
 
@@ -240,10 +205,51 @@ Linux-bridges are used for the for the vlan and vxlan traffic.
     bridge_waitport 0
     bridge_fd 0
     bridge_ports enp5s0f1.1032
-    address 10.32.2.29
+    address 10.32.2.X
     netmask 255.255.0.0
 
     source /etc/network/interfaces.d/*.cfg
+
+- cirrus53-1 has IP suffix .33
+- cirrus53-2 has IP suffix .34
+- cirrus53-3 has IP suffix .35
+- cirrus53-4 has IP suffix .36
+- cirrus54-1 has IP suffix .37
+- cirrus54-2 has IP suffix .38
+- cirrus54-3 has IP suffix .39
+- cirrus54-4 has IP suffix .40
+- cirrus55-2 has IP suffix .42
+- cirrus55-3 has IP suffix .43
+- cirrus55-4 has IP suffix .44
+- cirrus56-1 has IP suffix .45
+- cirrus56-2 has IP suffix .46
+- cirrus56-3 has IP suffix .47
+- cirrus57-2 has IP suffix .50
+- cirrus57-3 has IP suffix .51
+- cirrus58-2 has IP suffix .54
+- cirrus58-3 has IP suffix .55
+- cirrus58-4 has IP suffix .56
+- cirrus59-1 has IP suffix .57
+- cirrus59-2 has IP suffix .58
+- cirrus60-2 has IP suffix .30
+- cirrus60-3 has IP suffix .31
+- cirrus60-4 has IP suffix .32
+- cirrus63-1 has IP suffix .13
+- cirrus63-2 has IP suffix .14
+- cirrus63-3 has IP suffix .15
+- cirrus64-1 has IP suffix .17
+- cirrus64-2 has IP suffix .18
+- cirrus64-3 has IP suffix .19
+- cirrus64-4 has IP suffix .20
+- cirrus65-1 has IP suffix .21
+- cirrus65-2 has IP suffix .22
+- cirrus65-3 has IP suffix .23
+- cirrus65-4 has IP suffix .24
+- cirrus66-1 has IP suffix .25
+- cirrus66-4 has IP suffix .28
+- cirrus67-1 has IP suffix .1
+- cirrus67-2 has IP suffix .2
+- cirrus67-3 has IP suffix .3
 
 ### Management node interfaces
 
@@ -295,63 +301,26 @@ Linux-bridges are used for the for the vlan and vxlan traffic.
     address 172.16.1.X
     netmask 255.255.255.0
 
-- u-mn-o24 has IP suffix .2
-- u-mn-o25 has IP suffix .3
-- u-mn-o26 has IP suffix .4
-
-
-/etc/network/interfaces.d/bond0.interfaces
-
-    auto eno1
-    iface eno1 inet manual
-    bond-master bond0
-
-    auto enp3s0f0
-    iface enp3s0f0 inet manual
-    bond-master bond0
-
-    auto bond0
-    iface bond0 inet manual
-    bond-slaves eno1 enp3s0f0
-    bond-mode active-backup
-    bond-miimon 100
-    bond-downdelay 200
-    bond-updelay 200
-
-/etc/network/interfaces.d/bond1.interfaces
-
-    auto eno2
-    iface eno2 inet manual
-    bond-master bond1
-
-    auto enp3s0f1
-    iface enp3s0f1 inet manual
-    bond-master bond1
-
-    auto bond1
-    iface bond1 inet manual
-    bond-slaves eth1 eth3
-    bond-mode active-backup
-    bond-miimon 100
-    bond-downdelay 250
-    bond-updelay 250
-
+- cirrus0 has IP suffix .160
+- cirrus1 has IP suffix .161
+- cirrus2 has IP suffix .162
+- cirrus3 has IP suffix .163 (not part of OpenStack, just ceph)
 
 ### Floating IPv4 Pool
 
-    The floating IPv4 network pool is a full class C network (130.239.81.0/24) with the gateway 130.239.81.254.
+The floating IPv4 network pool is a /26 network (129.16.125.192/26) with the gateway 129.16.125.193.
 
-    neutron net-create "Public External IPv4 Network" --shared --router:external=True --provider:network_type vlan --provider:segmentation_id 3 --provider:physical_network vlan
-    neutron subnet-create  --allocation-pool start=130.239.81.1,end=130.239.81.253 --gateway 130.239.81.254 --disable-dhcp --name "Public External IPv4 Subnet" --ip-version 4 --dns-nameserver 130.239.1.90 "Public External IPv4 Network" 130.239.81.0/24
+    neutron net-create "Public External IPv4 Network" --shared --router:external=True --provider:network_type vlan --provider:segmentation_id 12 --provider:physical_network vlan
+    neutron subnet-create  --allocation-pool start=129.16.125.194,end=129.16.125.253 --gateway 129.16.125.193 --disable-dhcp --name "Public External IPv4 Subnet" --ip-version 4 --dns-nameserver 129.16.1.53 c0a20db8-4a7b-4702-ae05-bd65b10ebd35 129.16.125.192/26
 
 ### IPv6 Networking using external DHCPv6
 
-We have a very large IPv6 network (2001:6b0:e:4081::/64) for the cloud and the IPv6 addresses are assigned with SLAAC from the external router.
+We have a very large IPv6 network (2001:6b0:2:2800::/64) for the cloud and the IPv6 addresses are assigned with SLAAC from the external router.
 
 Currently it is one large shared network but we will try to use prefix delegation to get a subnet for each project later.
 
-    neutron net-create "Public External IPv6 Network" --shared --router:external=True --provider:network_type vlan --provider:segmentation_id 5 --provider:physical_network vlan
-    neutron subnet-create --ipv6_address_mode=slaac --name "Public External IPv6 Subnet" --ip-version 6 --dns-nameserver 2001:6b0:e:5::2 "Public External IPv6 Network" 2001:6b0:e:4081::/64
+    neutron net-create "Public External IPv6 Network" --shared --router:external=True --provider:network_type vlan --provider:segmentation_id 11 --provider:physical_network vlan
+    neutron subnet-create --ipv6_address_mode=slaac --name "Public External IPv6 Subnet" --ip-version 6 --dns-nameserver 2001:6b0:2:1::53 "Public External IPv6 Network" 2001:6b0:2:2800::/64
 
 ## Galera
 
@@ -377,13 +346,13 @@ MongoDB is not setup by the openstack ansible scripts
 The mongoDB dabase is installed on the controller node u-mn-24 using the following commands
 
     apt-get install mongodb-server mongodb-clients python-pymongo
-    sed -i 's/127.0.0.1/172.16.2.2/g' /etc/mongodb.conf
+    sed -i 's/127.0.0.1/10.33.1.160/g' /etc/mongodb.conf
     echo smallfiles = true >> /etc/mongodb.conf
     service mongodb restart
 
-Get **CEILOMETER_DBPASS** from `ceilometer_container_db_password` in `/etc/openstack_deploy/user_secrets.yml` on deploy host `u-sn-o38`
+Get **CEILOMETER_DBPASS** from `ceilometer_container_db_password` in `/etc/openstack_deploy/user_secrets.yml` on deploy host `cirrus-deploy`
 
-    mongo --host 172.16.2.2 --eval '
+    mongo --host 10.33.1.160 --eval '
     db = db.getSiblingDB("ceilometer");
     db.addUser({user: "ceilometer",
     pwd: "**CEILOMETER_DBPASS**",
@@ -425,7 +394,7 @@ Run the following commands in all horizon containers.
 
     cp /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html.`date +"%Y%m%d"`
 
-    REGION=HPC2N
+    REGION=C3SE
 
     cat - <<EOF > /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html
     {% load i18n %}

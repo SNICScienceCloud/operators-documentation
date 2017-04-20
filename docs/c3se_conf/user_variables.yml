@@ -1,0 +1,331 @@
+---
+# Copyright 2014, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+###
+### This file contains commonly used overrides for convenience. Please inspect
+### the defaults for each role to find additional override options.
+###
+
+## Debug and Verbose options.
+debug: true
+
+apply_security_hardening: no
+
+# Region names
+
+glance_swift_store_region: C3SE
+aodh_service_region: C3SE
+barbican_service_region: C3SE
+ceilometer_service_region: C3SE
+cinder_service_region: C3SE
+designate_service_region: C3SE
+glance_service_region: C3SE
+gnocchi_service_region: C3SE
+heat_service_region: C3SE
+horizon_service_region: C3SE
+ironic_service_region: C3SE
+keystone_service_region: C3SE
+magnum_service_region: C3SE
+neutron_service_region: C3SE
+nova_service_region: C3SE
+openrc_region_name: C3SE
+sahara_service_region: C3SE
+swift_service_region: C3SE
+trove_service_region: C3SE
+
+## Common Glance Overrides
+# Set glance_default_store to "swift" if using Cloud Files backend
+# or "rbd" if using ceph backend; the latter will trigger ceph to get
+# installed on glance. If using a file store, a shared file store is
+# recommended. See the OpenStack-Ansible install guide and the OpenStack
+# documentation for more details.
+# Note that "swift" is automatically set as the default back-end if there
+# are any swift hosts in the environment. Use this setting to override
+# this automation if you wish for a different default back-end.
+# glance_default_store: file
+
+## Ceph pool name for Glance to use
+# glance_rbd_store_pool: images
+# glance_rbd_store_chunk_size: 8
+
+glance_ceph_client: glance
+glance_rbd_store_pool: glance-images
+glance_rbd_store_chunk_size: 8
+glance_default_store: rbd
+glance_notification_driver: noop
+glance_swift_store_endpoint_type: internalURL
+
+
+
+## Common Nova Overrides
+# When nova_libvirt_images_rbd_pool is defined, ceph will be installed on nova
+# hosts.
+# nova_libvirt_images_rbd_pool: vms
+
+nova_libvirt_images_rbd_pool: nova-vms
+
+nova_force_config_drive: False
+
+nova_nova_conf_overrides:
+  DEFAULT:
+    nova_scheduler_default_filters: "RetryFilter,AvailabilityZoneFilter,RamFilter,ComputeFilter,ComputeCapabilitiesFilter,ImagePropertiesFilter,ServerGroupAntiAffinityFilter,ServerGroupAffinityFilter,AggregateCoreFilter,AggregateDiskFilter,AggregateInstanceExtraSpecsFilter"
+  libvirt:
+    live_migration_uri: qemu+ssh://nova@%s/system?keyfile=/var/lib/nova/.ssh/id_rsa&no_verify=1
+
+# If you wish to change the dhcp_domain configured for both nova and neutron
+# dhcp_domain: openstacklocal
+
+## Common Glance Overrides when using a Swift back-end
+# By default when 'glance_default_store' is set to 'swift' the playbooks will
+# expect to use the Swift back-end that is configured in the same inventory.
+# If the Swift back-end is not in the same inventory (ie it is already setup
+# through some other means) then these settings should be used.
+#
+# NOTE: Ensure that the auth version matches your authentication endpoint.
+#
+# NOTE: If the password for glance_swift_store_key contains a dollar sign ($),
+# it must be escaped with an additional dollar sign ($$), not a backslash. For
+# example, a password of "super$ecure" would need to be entered as
+# "super$$ecure" below.  See Launchpad Bug #1259729 for more details.
+#
+# glance_swift_store_auth_version: 3
+# glance_swift_store_auth_address: "https://some.auth.url.com"
+# glance_swift_store_key: "OPENSTACK_USER_PASSWORD"
+# glance_swift_store_container: "NAME_OF_SWIFT_CONTAINER"
+# glance_swift_store_region: "NAME_OF_REGION"
+
+## Common Ceph Overrides
+ceph_mons:
+   - 10.32.1.160
+   - 10.32.1.161
+   - 10.32.1.162
+   - 10.32.1.163
+
+## Custom Ceph Configuration File (ceph.conf)
+# By default, your deployment host will connect to one of the mons defined above to
+# obtain a copy of your cluster's ceph.conf.  If you prefer, uncomment ceph_conf_file
+# and customise to avoid ceph.conf being copied from a mon.
+ceph_conf_file: |
+  [global]
+  fsid = 5a07c088-f5b7-4f3c-a1e2-ed6079562106
+  mon_initial_members = {{ ceph_mons|join(',') }}
+  mon_host = {{ ceph_mons|join(',') }}
+  auth_cluster_required = cephx
+  auth_service_required = cephx
+
+ceph_mon_host: 10.32.1.160
+
+## Custom Ceph Configuration File (ceph.conf)
+# By default, your deployment host will connect to one of the mons defined above to
+# obtain a copy of your cluster's ceph.conf.  If you prefer, uncomment ceph_conf_file
+# and customise to avoid ceph.conf being copied from a mon.
+#ceph_conf_file: |
+#  [global]
+#  fsid = 00000000-1111-2222-3333-444444444444
+#  mon_initial_members = mon1.example.local,mon2.example.local,mon3.example.local
+#  mon_host = 10.16.5.40,10.16.5.41,10.16.5.42
+#  # optionally, you can use this construct to avoid defining this list twice:
+#  # mon_host = {{ ceph_mons|join(',') }}
+#  auth_cluster_required = cephx
+#  auth_service_required = cephx
+
+## Cinder
+# Ceph client user for cinder to connect to the ceph cluster
+cinder_ceph_client: cinder
+ceph_pkg_source: distro
+ceph_stable_release: jewel
+cephx: true
+
+# By default, openstack-ansible configures all OpenStack services to talk to
+# RabbitMQ over encrypted connections on port 5671. To opt-out of this default,
+# set the rabbitmq_use_ssl variable to 'false'. The default setting of 'true'
+# is highly recommended for securing the contents of RabbitMQ messages.
+rabbitmq_use_ssl: false
+
+# RabbitMQ management plugin is enabled by default, the guest user has been
+# removed for security reasons and a new userid 'monitoring' has been created
+# with the 'monitoring' user tag. In order to modify the userid, uncomment the
+# following and change 'monitoring' to your userid of choice.
+# rabbitmq_monitoring_userid: monitoring
+
+
+## Additional pinning generator that will allow for more packages to be pinned as you see fit.
+## All pins allow for package and versions to be defined. Be careful using this as versions
+## are always subject to change and updates regarding security will become your problem from this
+## point on. Pinning can be done based on a package version, release, or origin. Use "*" in the
+## package name to indicate that you want to pin all package to a particular constraint.
+# apt_pinned_packages:
+#   - { package: "lxc", version: "1.0.7-0ubuntu0.1" }
+#   - { package: "libvirt-bin", version: "1.2.2-0ubuntu13.1.9" }
+#   - { package: "rabbitmq-server", origin: "www.rabbitmq.com" }
+#   - { package: "*", release: "MariaDB" }
+
+
+## Environment variable settings
+# This allows users to specify the additional environment variables to be set
+# which is useful in setting where you working behind a proxy. If working behind
+# a proxy It's important to always specify the scheme as "http://". This is what
+# the underlying python libraries will handle best. This proxy information will be
+# placed both on the hosts and inside the containers.
+
+## Example environment variable setup:
+# proxy_env_url: http://username:pa$$w0rd@10.10.10.9:9000/
+# no_proxy_env: "localhost,127.0.0.1,{{ internal_lb_vip_address }},{{ external_lb_vip_address }},{% for host in groups['all_containers'] %}{{ hostvars[host]['container_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+# global_environment_variables:
+#   HTTP_PROXY: "{{ proxy_env_url }}"
+#   HTTPS_PROXY: "{{ proxy_env_url }}"
+#   NO_PROXY: "{{ no_proxy_env }}"
+#   http_proxy: "{{ proxy_env_url }}"
+#   https_proxy: "{{ proxy_env_url }}"
+#   no_proxy: "{{ no_proxy_env }}"
+
+
+## SSH connection wait time
+# If an increased delay for the ssh connection check is desired,
+# uncomment this variable and set it appropriately.
+#ssh_delay: 5
+
+
+## HAProxy
+# Uncomment this to disable keepalived installation (cf. documentation)
+haproxy_use_keepalived: True
+#
+# HAProxy Keepalived configuration (cf. documentation)
+# Make sure that this is set correctly according to the CIDR used for your
+# internal and external addresses.
+haproxy_keepalived_external_vip_cidr: "129.16.125.51/32"
+haproxy_keepalived_internal_vip_cidr: "{{internal_lb_vip_address}}/32"
+haproxy_keepalived_external_interface: eno2
+haproxy_keepalived_internal_interface: br-mgmt
+
+haproxy_user_ssl_cert: /etc/openstack_deploy/custom/certs/c3se_cloud_snic_se.crt
+haproxy_user_ssl_key: /etc/openstack_deploy/custom/certs/c3se_cloud_snic_se.key
+haproxy_user_ssl_ca_cert: /etc/openstack_deploy/custom/certs/DigiCertCA.crt
+
+# Defines the default VRRP id used for keepalived with haproxy.
+# Overwrite it to your value to make sure you don't overlap
+# with existing VRRPs id on your network. Default is 10 for the external and 11 for the
+# internal VRRPs
+# haproxy_keepalived_external_virtual_router_id:
+# haproxy_keepalived_internal_virtual_router_id:
+
+# Defines the VRRP master/backup priority. Defaults respectively to 100 and 20
+# haproxy_keepalived_priority_master:
+# haproxy_keepalived_priority_backup:
+
+# Keepalived default IP address used to check its alive status (IPv4 only)
+# keepalived_ping_address: "193.0.14.129"
+
+# All the previous variables are used in a var file, fed to the keepalived role.
+# To use another file to feed the role, override the following var:
+# haproxy_keepalived_vars_file: 'vars/configs/keepalived_haproxy.yml'
+
+## Host security hardening
+# The openstack-ansible-security role provides security hardening for hosts
+# by applying security configurations from the STIG. Hardening is disabled by
+# default, but an option to opt-in is available by setting the following
+# variable to 'true'.
+# Docs: http://docs.openstack.org/developer/openstack-ansible-security/
+# apply_security_hardening: true
+
+ssl_protocol: "ALL -SSLv2 -SSLv3"
+ssl_cipher_suite: "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS"
+
+keystone_service_publicuri_proto: https
+
+# your SSL certificate is likely using a DNS name, so this must be set
+horizon_server_name: c3se.cloud.snic.se
+horizon_session_timeout: 28800
+
+# Horizon must refer to a name matching the SSL cert
+# in this test environment, both keystone and Horizon shared a common DNS name
+horizon_keystone_host: "{{ horizon_server_name }}"
+horizon_keystone_endpoint: "{{ keystone_service_publicuri_proto }}://{{ horizon_server_name }}:5000/v3"
+
+# Multple region configuration
+#horizon_available_regions:
+#   - { url: "https://c3se.cloud.snic.se:5000/v3", name: "C3SE" }
+#   - { url: "https://hpc2n.cloud.snic.se:5000/v3", name: "HPC2N" }
+#   - { url: "https://uppmax.cloud.snic.se:5000/v3", name: "UPPMAX" }
+
+# Ensure that the public endpoint registered for Keystone uses the right name
+keystone_public_endpoint: "{{ keystone_service_publicuri_proto }}://{{ horizon_server_name }}:5000"
+keystone_service_publicurl: "{{ horizon_keystone_endpoint }}"
+
+# update mapping set rules = '"[{\\"remote\\": [{\\"type\\": \\"uid\\"}], \\"local\\": [{\\"user\\": {\\"domain\\": {\\"name\\": \\"snic\\"}, \\"type\\": \\"local\\",\\"name\\": \\"{0}\\"}}]}]"';
+
+horizon_custom_uploads:
+   logo:
+     src: "/etc/openstack_deploy/custom/SNICcloudLogo.001.png"
+     dest: "img/logo.png"
+   logo_splash:
+    src: "/etc/openstack_deploy/custom/SNICcloudLogo.001.png"
+    dest: "img/logo-splash.png"
+
+_horizon_available_themes:
+ default:
+   theme_name: "default"
+   theme_label: "Default"
+   theme_path: "themes/default"
+
+nova_console_type: novnc
+
+rsyslog_client_user_defined_targets:
+  - name: "amy"
+    proto: "udp"
+    port: "514"
+    hostname: "amy.c3se.chalmers.se"
+
+horizon_websso_initial_choice: "saml2"
+
+keystone_sp:
+ cert_duration_years: 5
+ trusted_dashboard_list:
+   - "https://{{ horizon_server_name }}/auth/websso/"
+   - "https://hpc2n.cloud.snic.se/auth/websso/"
+ trusted_idp_list:
+   - name: 'SUPR'
+     entity_ids:
+       - 'https://hpc2n.cloud.snic.se:8443/saml2/idp/metadata.php'
+     metadata_uri: 'https://hpc2n.cloud.snic.se:8443/saml2/idp/metadata.php?output=xml'
+     metadata_file: 'metadata-supr-idp.xml'
+     metadata_reload: 1800
+     protocols:
+       - name: saml2
+         mapping:
+           name: supr-idp-mapping
+           rules:
+             - remote:
+                 - type: uid
+               local:
+                 - user:
+                     domain:
+                       name: snic
+                     name: '{0}'
+                     type: local
+         attributes:
+           - name: 'urn:oid:0.9.2342.19200300.100.1.1'
+             id: uid
+
+ceilometer_db_type: mongodb
+ceilometer_db_ip: 10.33.1.160
+ceilometer_metering_time_to_live: 604800
+ceilometer_event_time_to_live: 604800
+
+cinder_ceilometer_enabled: true
+glance_ceilometer_enabled: true
+nova_ceilometer_enabled: true
+
+neutron_quota_floatingip: 4
