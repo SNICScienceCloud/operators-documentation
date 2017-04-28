@@ -90,7 +90,7 @@ Start live migrate on the utility container. Then set host in maintenance mode
         compute_host={COMPUTE_HOST};
         nova host-evacuate-live $compute_host; 
         watch sh -c "'nova migration-list |grep $compute_host |grep -v completed |grep `date +%F`'"
-        nova host-update --maintenance enable $compute_host
+        nova service-disable --reason maintenance $compute_host nova-compute
 
 Watch status on the {COMPUTE_HOST} compute node
 
@@ -122,7 +122,7 @@ When the compute_host is rebooted, enable it again in the utility container
 
     root@utility_container: # 
 
-        nova host-update --maintenance disable $compute_host
+        nova service-enable $compute_host nova-compute
 
 ### Ceph Storage hosts
 
@@ -153,7 +153,7 @@ Wait for the host to reboot and resync.. When this is complete the only warning 
 
     root@ceph_storage_host: #
 
-        ceph health
+        watch ceph health
 
     HEALTH_WARN noout flag(s) set
 
