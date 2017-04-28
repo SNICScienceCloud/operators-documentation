@@ -24,7 +24,7 @@ Disable services in haproxy
 
         echo "show stat" | nc -U /var/run/haproxy.stat | \
         grep `hostname -s` | cut -d, -f1,2 | tr , / | \
-        xargs -i -n1 sh -c "echo disable compute_host {} | nc -U /var/run/haproxy.stat"
+        xargs -i -n1 sh -c "echo disable server {} | nc -U /var/run/haproxy.stat"
 
 Check that they are disabled
 
