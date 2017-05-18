@@ -89,9 +89,9 @@ Start live migrate on the utility container. Then set host in maintenance mode
     root@utility_container: # 
     
         compute_host={COMPUTE_HOST};
+        nova service-disable --reason maintenance $compute_host nova-compute
         nova host-evacuate-live $compute_host; 
         watch sh -c "'nova migration-list |grep $compute_host |grep -v completed |grep `date +%F`'"
-        nova service-disable --reason maintenance $compute_host nova-compute
 
 Watch status on the {COMPUTE_HOST} compute node
 
