@@ -56,6 +56,7 @@ Make sure that the controller is up and in sync with galera before you continue 
 
     root@ansible_deploy_host: #
 
+        cd /opt/openstack-ansible/playbooks
         ansible galera_container -s -m shell -a 'mysql -e "SHOW STATUS LIKE \"wsrep_cluster%\""'
 
 In the output, **wsrep_cluster_size** should be **3** and the **wsrep_cluster** variables should be **the same in all** three databases.
