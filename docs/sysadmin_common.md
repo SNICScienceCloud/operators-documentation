@@ -32,6 +32,12 @@ Check that they are disabled
 
         echo "show stat" | nc -U /var/run/haproxy.stat | grep  `hostname -s`
 
+Make sure that mysql is properly stopped
+
+    root@controller_host: #
+
+        lxc-attach -n `lxc-ls -1 |grep _galera_container` systemctl stop mysql
+
 Upgrade packages in all containers
 
     root@controller_host: #
