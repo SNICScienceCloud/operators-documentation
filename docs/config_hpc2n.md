@@ -58,7 +58,7 @@ All stuff is not yet fixed with puppet so after the initial installation of the 
     mkdir /openstack
     mkdir /var/lib/nova
     
-    mkfs.xfs /dev/rootvg/openstacklv; then
+    mkfs.xfs /dev/rootvg/openstacklv
     mkfs.xfs /dev/rootvg/novalv
     
     cat - >> /etc/fstab <<EOF
@@ -86,6 +86,21 @@ All stuff is not yet fixed with puppet so after the initial installation of the 
     perl -pi -e 's,/home/syslog,/var/spool/rsyslog,' /etc/passwd
 
     mount -o remount /var
+
+#### Old Abisko nodes only
+
+    apt-get install -y libmlx4-1 ibverbs-utils infiniband-diags python-libxml2
+
+    cd /afs/hpc2n.umu.se/lap/mlnx-ofed/3.3/src/MLNX_OFED_SRC-3.3-1.0.4.0/SOURCES/xenial/
+
+    dpkg -i mlnx-ofed-kernel-dkms_3.3-OFED.3.3.1.0.4.1.gcd30181.hpc2n01_all.deb mlnx-ofed-kernel-utils_3.3-OFED.3.3.1.0.4.1.gcd30181.hpc2n01_amd64.deb
+
+    echo mlx4_vnic >> /etc/modules
+
+    systemctl enable openibd
+
+    /etc/init.d/openibd start
+
 
 ### Management node post puppet suff
 
@@ -315,7 +330,7 @@ We have a very large IPv6 network (2001:6b0:e:4081::/64) for the cloud and the I
 
 Currently it is one large shared network but we will try to use prefix deligation to get a subnet for each project later.
 
-    neutron net-create "Public External IPv6 Network" --shared --router:external=True --provider:network_type vlan --provider:segmentation_id 5 --provider:physical_network vlan
+    neutron net-create "Public External IPv6 Network" --shared --provider:network_type vlan --provider:segmentation_id 5 --provider:physical_network vlan
     neutron subnet-create --ipv6_address_mode=slaac --name "Public External IPv6 Subnet" --ip-version 6 --dns-nameserver 2001:6b0:e:5::2 "Public External IPv6 Network" 2001:6b0:e:4081::/64
 
 ## Galera
@@ -504,9 +519,11 @@ The images are kept up to date using a cronjob and a [bash script](scripts/updat
 
 We have made some changes to the default quota
 
-Numer of vCPU:s is increased from 20 to 40
-
-    nova quota-class-update default --cores 40
+    nova quota-class-update default --cores 128
+    nova quota-class-update default --instances 64
+    nova quota-class-update default --ram 65536
+    nova quota-class-update default --server-group-members 64
+    nova quota-class-update default --server-groups 32
     
 Number of floating ips is limited from 50 to 5 in user_varibables.yml
 
