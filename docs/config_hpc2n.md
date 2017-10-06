@@ -524,7 +524,202 @@ We have made some changes to the default quota
     nova quota-class-update default --ram 65536
     nova quota-class-update default --server-group-members 64
     nova quota-class-update default --server-groups 32
+    cinder quota-class-update default --volumes 32
     
 Number of floating ips is limited from 50 to 5 in user_varibables.yml
 
     neutron_quota_floatingip: 5
+
+## RadosGW for Ceph Object-Store
+
+### Extra container on the mgmt-nodes.
+
+A new container has been created for the ceph-rados gateway.
+
+Using openstack ansible a container with the name radosgw_container is created by creating the the config file [radosgw_container.yml](hpc2n_conf/radosgw_container.yml) in the /etc/openstack_deploy/env.d/ directory on the ansible deploy host.
+
+To make it available there is a section "radosgw_hosts:" in the [openstack_user_config.yml](hpc2n_conf/openstack_user_config.yml) file and config for haproxy configuration in the "haproxy_extra_services:" section fo the [user_variables.yml](hpc2n_conf/user_variables.yml) file.
+
+Then run the playbooks to install the containers and haproxy-changes.
+
+	openstack-ansible setup-hosts.yml --limit radosgw_all
+	openstack-ansible setup-infrastructure.yml --limit radosgw_all
+	openstack-ansible setup-infrastructure.yml --limit haproxy_all
+
+### Creating the pools and users in ceph for object-store
+
+To create the object store pools, run these commands on any storage node. Adjust the pg-num and pgp-num values from 64 to whatever is a good value for your ceph osd count.
+
+    ceph osd pool create .rgw.root 64 64
+    ceph osd pool create default.rgw.control 64 64
+    ceph osd pool create default.rgw.data.root 64 64
+    ceph osd pool create default.rgw.log 64 64
+    ceph osd pool create default.rgw.intent-log 64 64
+    ceph osd pool create default.rgw.gc 64 64
+    ceph osd pool create default.rgw.users.uid 64 64
+    ceph osd pool create default.rgw.usage 64 64
+    ceph osd pool create default.rgw.users.keys 64 64
+    ceph osd pool create default.rgw.users.email 64 64
+    ceph osd pool create default.rgw.users.swift 64 64
+    ceph osd pool create default.rgw.users.uid 64 64
+    ceph osd pool create default.rgw.buckets.index 64 64
+    ceph osd pool create default.rgw.buckets.data 64 64
+    ceph osd pool create default.rgw.meta 64 64
+
+Create a user for radosgw.
+The permissions in the ceph documentaion are to allowing so we have limited the permissions only to the pools that it is going to use.
+
+    ceph-authtool --create-keyring /etc/ceph/ceph.client.radosgw.keyring
+    ceph-authtool /etc/ceph/ceph.client.radosgw.keyring -n client.radosgw.gateway --gen-key
+    ceph-authtool -n client.radosgw.gateway --cap osd 'allow class-read object_prefix rbd_children,rwx pool=.rgw.root,rwx pool=default.rgw.control,rwx pool=default.rgw.data.root,rwx pool=default.rgw.log,rwx pool=default.rgw.intent-log,rwx pool=default.rgw.gc,rwx pool=default.rgw.users.uid,rwx pool=default.rgw.usage,rwx pool=default.rgw.users.keys,rwx pool=default.rgw.users.email,rwx pool=default.rgw.users.swift,rwx pool=default.rgw.users.uid,rwx pool=default.rgw.buckets.index,rwx pool=default.rgw.buckets.data,rwx pool=default.rgw.meta' --cap mon 'allow r' /etc/ceph/ceph.client.radosgw.keyring
+    
+    ceph -k /etc/ceph/ceph.client.admin.keyring auth add client.radosgw.gateway -i /etc/ceph/ceph.client.radosgw.keyring
+
+
+### Crete a service user for the object-store in OpenStack Keystone
+
+Take note of the password since you will be using that in your ceph.conf in the radosgw containers.
+
+    openstack user create ceph --password-prompt
+    openstack role add --user ceph --project admin admin
+
+### Install RadosGW on the containers
+
+For all of the radosgw_containers you need to install and configure radosgw, so attach the container and run the commands within the container.
+
+Install required packages
+    apt-get install radosgw radosgw-agent apache2 libapache2-mod-fastcgi curl
+
+Create the fcgi-script wrapper
+
+    cat - > /var/www/s3gw.fcgi <<EOF
+    #!/bin/sh
+    exec /usr/bin/radosgw -c /etc/ceph/ceph.conf -n client.radosgw.gateway
+    EOF
+
+    chmod +x /var/www/s3gw.fcgi
+
+Create a folder for radosgw, does not seem to be used anyway but it is in the offical documentation.. 
+
+    mkdir -p /var/lib/ceph/radosgw/ceph-radosgw.gateway
+    chmod a+rxw /var/run/ceph/
+
+Create the config for apache
+
+    cat - > /etc/apache2/sites-available/rgw.conf <<EOF
+    FastCgiExternalServer /var/www/s3gw.fcgi -socket /var/run/ceph/ceph.radosgw.fastcgi.sock
+    
+    <VirtualHost *:80>
+    
+            DocumentRoot /var/www
+            RewriteEngine On
+            RewriteRule  ^/(.*) /s3gw.fcgi?%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
+    
+            <IfModule mod_fastcgi.c>
+            <Directory /var/www>
+                            Options +ExecCGI
+                            AllowOverride All
+                            SetHandler fastcgi-script
+                            Order allow,deny
+                            Allow from all
+                            AuthBasicAuthoritative Off
+                    </Directory>
+            </IfModule>
+    
+            AllowEncodedSlashes On
+            ErrorLog /var/log/apache2/error.log
+            CustomLog /var/log/apache2/access.log combined
+            ServerSignature Off
+    
+    </VirtualHost>
+    EOF
+
+From the storage node where you created the user copy these files to the same location in the container.
+
+    /etc/ceph/ceph.client.radosgw.keyring
+    /etc/ceph/ceph.conf
+
+Fix permissons and owner
+
+    chown root:root /etc/ceph/ceph.*
+    chmod 640 /etc/ceph/ceph.*
+
+Enable modules and rgw site, disable the default website.
+
+    sudo a2enmod rewrite
+    sudo a2enmod fastcgi
+    a2ensite rgw.conf
+    a2dissite 000-default
+
+Add the radosgw parts to ceph.conf, change EDIT_PASSWORD to the password used when creating the ceph service user.
+
+    cat - >> /etc/ceph/ceph.conf <<EOF
+    [client.radosgw.gateway]
+    host = `hostname`
+    keyring = /etc/ceph/ceph.client.radosgw.keyring
+    rgw socket path = /var/run/ceph/ceph.radosgw.fastcgi.sock
+    log file = /var/log/radosgw/client.radosgw.log
+    rgw keystone url = http://172.16.2.1:35357
+    rgw keystone admin user = ceph
+    rgw keystone admin password = EDIT_PASSWORD
+    rgw keystone admin project = admin
+    rgw keystone admin domain = default
+    rgw keystone accepted roles = _member_, admin
+    rgw keystone api version = 3
+    rgw enable usage log = true
+    EOF
+
+## Enable and restart services
+
+    systemctl enable radosgw
+    systemctl restart radosgw
+    systemctl enable apache2
+    systemctl restart apache2
+
+## Test that it works.
+
+    curl localhost
+
+ Should be an xml response with owner anonymous like
+
+    <?xml version="1.0" encoding="UTF-8"?><ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>anonymous</ID><DisplayName></DisplayName></Owner><Buckets></Buckets></ListAllMyBucketsResult>
+
+Then continue with the next container until all radowsgw containers are installed and working.
+
+### Create a swift endpoint in OpenStack Keystone 
+
+Change hpc2n.cloud.snic.se and 172.16.2.1 to whatever addresses is used in your region.
+
+    openstack service create --name swift --description "object store service" object-store
+    openstack endpoint create --region HPC2N object-store public https://hpc2n.cloud.snic.se:6000/swift/v1
+    openstack endpoint create --region HPC2N object-store internal http://172.16.2.1:6000/swift/v1
+    openstack endpoint create --region HPC2N object-store admin http://172.16.2.1:6000/swift/v1
+
+## Ceilometer for RadosGW
+
+### Create a admin user in the object store for the ceilometer service
+
+If you want to be able to fetch usage with ceilometer you will need to create a user 
+
+    radosgw-admin user create --uid admin --display-name "admin user" --caps "usage=read,write;metadata=read,write;users=read,write;buckets=read,write"
+
+Take note of the access_key och secret_key, since these will be used in the ceilometer.conf file in the ceilometer containers.
+
+### Modify the ceilometer containers
+
+You need to add the radosgw config to the [default] section of /etc/ceilometer/ceilometer.conf in the ceilometer containers and this is where you will be using the keys created before.
+
+    radosgw = object-store
+    
+    [rgw_admin_credentials]
+    access_key = ACCESS_KEY
+    secret_key = SECRET_KEY
+
+Since awsauth is used for polling you need to install that. However you only need to do this in the ceilometer_api container.
+In the containers pip uses a local repository and openstack-ansible has deployed its own python, so because I am lazy I intalled the ubuntu package and linked it to the correct location (Ugly? Yes i know).
+
+    apt-get install python-awsauth
+    ln -s /usr/lib/python2.7/dist-packages/awsauth.py /openstack/venvs/ceilometer-14.0.7/lib/python2.7/
+
+Then restart all the ceilometer containers.
+

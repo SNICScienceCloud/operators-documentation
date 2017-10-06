@@ -302,6 +302,14 @@ haproxy_extra_services:
       haproxy_balance_type: "http"
       haproxy_backend_options:
         - "httpchk HEAD /"
+  - service:
+      haproxy_service_name: radosgw_service
+      haproxy_backend_nodes: "{{ groups['radosgw_all'] | default([])  }}"
+      haproxy_port: 6000
+      haproxy_ssl: true
+      haproxy_balance_type: "http"
+      haproxy_backend_options:
+        - "httpchk HEAD /"
 
 horizon_session_timeout: 28800
 
@@ -320,4 +328,6 @@ cinder_ceilometer_enabled: true
 glance_ceilometer_enabled: true
 nova_ceilometer_enabled: true
 
+# Limit floating ip to 5
 neutron_quota_floatingip: 5
+openstack_domain: hpc2n.umu.se

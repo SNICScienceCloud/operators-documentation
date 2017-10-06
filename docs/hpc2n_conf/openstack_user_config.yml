@@ -322,6 +322,7 @@ global_overrides:
           - cinder_volume
           - cinder_scheduler
           - nova_compute
+          - radosgw
         type: "raw"
         container_bridge: "br-storage"
         container_type: "veth"
@@ -571,6 +572,14 @@ compute_hosts:
     ip: 130.239.46.146
   u-cn-o14:
     ip: 130.239.46.145
+  u-cn-o15:
+    ip: 130.239.46.158
+  u-cn-o16:
+    ip: 130.239.46.159
+  u-cn-o17:
+    ip: 130.239.46.160
+  u-cn-o18:
+    ip: 130.239.46.161
 
 # ceilometer compute agent (telemetry)
 metering-compute_hosts:
@@ -594,9 +603,14 @@ metering-compute_hosts:
     ip: 130.239.46.146
   u-cn-o14:
     ip: 130.239.46.145
-
-
-
+  u-cn-o15:
+    ip: 130.239.46.158
+  u-cn-o16:
+    ip: 130.239.46.159
+  u-cn-o17:
+    ip: 130.239.46.160
+  u-cn-o18:
+    ip: 130.239.46.161
 
 #
 # Level: storage-infra_hosts (required)
@@ -949,4 +963,15 @@ suprauth-infra_hosts:
   u-mn-o26:
     ip: 130.239.46.157
 
+graylog_hosts:
+  u-mn-o24:
+    ip: 130.239.46.155
+ 
+radosgw_hosts:
+  u-mn-o24:
+    ip: 130.239.46.155
+  u-mn-o26:
+    ip: 130.239.46.157
+  u-mn-o25:
+    ip: 130.239.46.156
 
