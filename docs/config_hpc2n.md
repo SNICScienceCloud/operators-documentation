@@ -566,15 +566,22 @@ To create the object store pools, run these commands on any storage node. Adjust
     ceph osd pool create default.rgw.buckets.data 64 64
     ceph osd pool create default.rgw.meta 64 64
 
+Inititate the objectstore
+
+    radosgw-admin realm create --rgw-realm=default --default
+    radosgw-admin zonegroup create --rgw-zonegroup=default --rgw-realm=defalut--master --default
+    radosgw-admin zone create --rgw-zonegroup=default --master --default --rgw-zone=default --endpoints "http://172.16.1:6000,https://hpc2n.cloud.snic.se:6000"
+    radosgw-admin period update --commit
+
+
+radosgw-admin zone create --rgw-zone=default --
+
 Create a user for radosgw.
-The permissions in the ceph documentaion are to allowing so we have limited the permissions only to the pools that it is going to use.
+I do not like the permissions but my attemts to limit the permissons have not worked.
 
-    ceph-authtool --create-keyring /etc/ceph/ceph.client.radosgw.keyring
-    ceph-authtool /etc/ceph/ceph.client.radosgw.keyring -n client.radosgw.gateway --gen-key
-    ceph-authtool -n client.radosgw.gateway --cap osd 'allow class-read object_prefix rbd_children,rwx pool=.rgw.root,rwx pool=default.rgw.control,rwx pool=default.rgw.data.root,rwx pool=default.rgw.log,rwx pool=default.rgw.intent-log,rwx pool=default.rgw.gc,rwx pool=default.rgw.users.uid,rwx pool=default.rgw.usage,rwx pool=default.rgw.users.keys,rwx pool=default.rgw.users.email,rwx pool=default.rgw.users.swift,rwx pool=default.rgw.users.uid,rwx pool=default.rgw.buckets.index,rwx pool=default.rgw.buckets.data,rwx pool=default.rgw.meta' --cap mon 'allow r' /etc/ceph/ceph.client.radosgw.keyring
-    
-    ceph -k /etc/ceph/ceph.client.admin.keyring auth add client.radosgw.gateway -i /etc/ceph/ceph.client.radosgw.keyring
-
+    ceph-authtool -C -n client.radosgw.gateway --gen-key /etc/ceph/ceph.client.radosgw.gateway.keyring
+    ceph-authtool -n client.radosgw.gateway --cap mon 'allow rw' --cap osd 'allow rwx' /etc/ceph/ceph.client.radosgw.gateway.keyring
+    ceph auth add client.radosgw.gateway --in-file=/etc/ceph/ceph.client.radosgw.gateway.keyring
 
 ### Crete a service user for the object-store in OpenStack Keystone
 
@@ -590,53 +597,24 @@ For all of the radosgw_containers you need to install and configure radosgw, so 
 Install required packages
     apt-get install radosgw radosgw-agent apache2 libapache2-mod-fastcgi curl
 
-Create the fcgi-script wrapper
-
-    cat - > /var/www/s3gw.fcgi <<EOF
-    #!/bin/sh
-    exec /usr/bin/radosgw -c /etc/ceph/ceph.conf -n client.radosgw.gateway
-    EOF
-
-    chmod +x /var/www/s3gw.fcgi
-
-Create a folder for radosgw, does not seem to be used anyway but it is in the offical documentation.. 
-
-    mkdir -p /var/lib/ceph/radosgw/ceph-radosgw.gateway
-    chmod a+rxw /var/run/ceph/
-
 Create the config for apache
 
     cat - > /etc/apache2/sites-available/rgw.conf <<EOF
-    FastCgiExternalServer /var/www/s3gw.fcgi -socket /var/run/ceph/ceph.radosgw.fastcgi.sock
-    
     <VirtualHost *:80>
-    
-            DocumentRoot /var/www
-            RewriteEngine On
-            RewriteRule  ^/(.*) /s3gw.fcgi?%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
-    
-            <IfModule mod_fastcgi.c>
-            <Directory /var/www>
-                            Options +ExecCGI
-                            AllowOverride All
-                            SetHandler fastcgi-script
-                            Order allow,deny
-                            Allow from all
-                            AuthBasicAuthoritative Off
-                    </Directory>
-            </IfModule>
-    
-            AllowEncodedSlashes On
-            ErrorLog /var/log/apache2/error.log
-            CustomLog /var/log/apache2/access.log combined
-            ServerSignature Off
-    
+    ServerName localhost
+    DocumentRoot /var/www/
+    ErrorLog /var/log/apache2/error.log
+    CustomLog /var/log/apache2/access.log combined
+    RewriteEngine On
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
+    SetEnv proxy-nokeepalive 1
+    ProxyPass / unix:///var/run/ceph/ceph.radosgw.gateway.fastcgi.sock|fcgi://localhost:9000/
     </VirtualHost>
     EOF
 
 From the storage node where you created the user copy these files to the same location in the container.
 
-    /etc/ceph/ceph.client.radosgw.keyring
+    /etc/ceph/ceph.client.radosgw.gateway.keyring
     /etc/ceph/ceph.conf
 
 Fix permissons and owner
@@ -646,19 +624,21 @@ Fix permissons and owner
 
 Enable modules and rgw site, disable the default website.
 
-    sudo a2enmod rewrite
-    sudo a2enmod fastcgi
+    a2enmod rewrite
+    a2enmod proxy_fcgi
     a2ensite rgw.conf
     a2dissite 000-default
 
-Add the radosgw parts to ceph.conf, change EDIT_PASSWORD to the password used when creating the ceph service user.
+Add the radosgw parts to ceph.conf, change EDIT_PASSWORD to the password used when creating the ceph service user and rgw dns name to your region dns name.
 
     cat - >> /etc/ceph/ceph.conf <<EOF
     [client.radosgw.gateway]
     host = `hostname`
-    keyring = /etc/ceph/ceph.client.radosgw.keyring
-    rgw socket path = /var/run/ceph/ceph.radosgw.fastcgi.sock
+    keyring = /etc/ceph/ceph.client.radosgw.gateway.keyring
+    rgw socket path = /var/run/ceph/ceph.radosgw.gateway.fastcgi.sock
+    rgw print continue = false
     log file = /var/log/radosgw/client.radosgw.log
+    rgw dns name = hpc2n.cloud.snic.se
     rgw keystone url = http://172.16.2.1:35357
     rgw keystone admin user = ceph
     rgw keystone admin password = EDIT_PASSWORD
@@ -666,8 +646,16 @@ Add the radosgw parts to ceph.conf, change EDIT_PASSWORD to the password used wh
     rgw keystone admin domain = default
     rgw keystone accepted roles = _member_, admin
     rgw keystone api version = 3
-    rgw enable usage log = true
+    rgw enable usage log = truA
+    rgw usage log tick interval = 30
+    rgw usage log flush threshold = 1024
+    rgw usage max shards = 32
+    rgw usage max user shards = 1
     EOF
+
+## Make sure www-data can read socket
+
+    chmod a+xr /var/run/ceph 
 
 ## Enable and restart services
 
@@ -678,7 +666,7 @@ Add the radosgw parts to ceph.conf, change EDIT_PASSWORD to the password used wh
 
 ## Test that it works.
 
-    curl localhost
+    curl localhost --header 'Host: hpc2n.cloud.snic.se'
 
  Should be an xml response with owner anonymous like
 
