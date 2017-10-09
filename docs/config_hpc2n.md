@@ -646,7 +646,7 @@ Add the radosgw parts to ceph.conf, change EDIT_PASSWORD to the password used wh
     rgw keystone admin domain = default
     rgw keystone accepted roles = _member_, admin
     rgw keystone api version = 3
-    rgw enable usage log = truA
+    rgw enable usage log = true
     rgw usage log tick interval = 30
     rgw usage log flush threshold = 1024
     rgw usage max shards = 32
