@@ -321,7 +321,7 @@ Linux-bridges are used for the for the vlan and vxlan traffic.
 
 The floating IPv4 network pool is a full class C network (130.239.81.0/24) with the gateway 130.239.81.254.
 
-    neutron net-create "Public External IPv4 Network" --shared --router:external=True --provider:network_type vlan --provider:segmentation_id 3 --provider:physical_network vlan
+    neutron net-create "Public External IPv4 Network" --router:external=True --provider:network_type vlan --provider:segmentation_id 3 --provider:physical_network vlan
     neutron subnet-create  --allocation-pool start=130.239.81.1,end=130.239.81.253 --gateway 130.239.81.254 --disable-dhcp --name "Public External IPv4 Subnet" --ip-version 4 --dns-nameserver 130.239.1.90 "Public External IPv4 Network" 130.239.81.0/24
 
 ### IPv6 Networking using external DHCPv6
