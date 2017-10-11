@@ -655,7 +655,7 @@ Add the radosgw parts to ceph.conf, change EDIT_PASSWORD to the password used wh
 
 ## Make sure www-data can read socket
 
-    chmod a+xr /var/run/ceph 
+    usermod -a -G ceph www-data
 
 ## Enable and restart services
 
