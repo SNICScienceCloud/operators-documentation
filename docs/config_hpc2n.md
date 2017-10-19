@@ -426,6 +426,11 @@ Run the following commands in all horizon containers.
                HPC2N
              </a>
            </li>
+           <li>
+             <a href="https://uppmax.cloud.snic.se/project">
+               UPPMAX
+             </a>
+           </li>
       </ul>
     EOF
 
