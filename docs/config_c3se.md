@@ -60,7 +60,7 @@ All stuff is not yet fixed with cobbler so after the initial installation of the
     # add required modules to /etc/modules
     pdsh -g cirruscompute "echo 'bonding' >> /etc/modules"
     pdsh -g cirruscompute "echo '8021q' >> /etc/modules"
-    
+
     # copy hosts.allow
     pdcp -g cirruscompute hosts.allow /etc/hosts.allow
 
@@ -83,7 +83,7 @@ All stuff is not yet fixed with cobbler so after the initial installation of the
     scp cirrus1-iptables.rules cirrus1:/etc/iptables.rules
     scp cirrus2-iptables.rules cirrus2:/etc/iptables.rules
 
-    
+
 ## Openstack Ansible
 
 The host cirrus-deploy is deployment-host for openstack-ansible.
@@ -413,6 +413,11 @@ Run the following commands in all horizon containers.
            <li>
              <a href="https://hpc2n.cloud.snic.se/project">
                HPC2N
+             </a>
+           </li>
+           <li>
+             <a href="https://uppmax.cloud.snic.se/project">
+               UPPMAX
              </a>
            </li>
       </ul>
