@@ -467,11 +467,11 @@ To "fix" this we need to replace a file in all horizon containsers.
 
 Run the following commands in all horizon containers.
 
-    cp /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html.`date +"%Y%m%d"`
+    cp /openstack/venvs/horizon-14.2.12/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html /openstack/venvs/horizon-14.2.12/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html.`date +"%Y%m%d"`
 
     REGION=HPC2N
 
-    cat - <<EOF > /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html
+    cat - <<EOF > /openstack/venvs/horizon-14.2.12/lib/python2.7/site-packages/horizon/templates/horizon/common/_region_selector.html
     {% load i18n %}
     
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -502,7 +502,7 @@ Run the following commands in all horizon containers.
 
 The region dropdown is hard to see all the way to the left so we move it to the right.
 
-Patch /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashboard/templates/header/_header.html
+Patch /openstack/venvs/horizon-14.2.12/lib/python2.7/site-packages/openstack_dashboard/templates/header/_header.html
 
     --- header/_header.html.orig	2017-02-21 11:13:12.357429096 +0100
     +++ header/_header.html	2017-02-21 11:17:19.858355731 +0100
@@ -520,42 +520,11 @@ Patch /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dash
          </div><!-- /.navbar-collapse -->
        </div><!-- /.container-fluid -->
 
-### Fix for broken POLICY_CHECK_FUNCTION check
-
-The version of horizon checked out by openstack-ansible has a bug causing the Admin panel to show for non admin users.
-
-This bug is solved in later versions of horizon but you can do a quickfix by editing /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashboard/dashboards/admin/dashboard.py
-
-Replace
-
-    class Admin(horizon.Dashboard):
-        name = _("Admin")
-        slug = "admin"
-
-        if getattr(settings, 'POLICY_CHECK_FUNCTION', None):
-            policy_rules = (('identity', 'admin_required'),
-                            ('image', 'context_is_admin'),
-                            ('volume', 'context_is_admin'),
-                            ('compute', 'context_is_admin'),
-                            ('network', 'context_is_admin'),
-                            ('orchestration', 'context_is_admin'),)
-        else:
-            permissions = (tuple(utils.get_admin_permissions()),)
-
-With
-
-    class Admin(horizon.Dashboard):
-        name = _("Admin")
-        slug = "admin"
-
-        permissions = (tuple(utils.get_admin_permissions()),)
-
-
 ### Remove Download of RCv2 from Access & Security page
 
 We do not support v2 authentication. Remove it so the users do not get confused.
 
-Edit /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashboard/dashboards/project/access_and_security/api_access/tables.py
+Edit /openstack/venvs/horizon-14.2.12/lib/python2.7/site-packages/openstack_dashboard/dashboards/project/access_and_security/api_access/tables.py
 
     --- tables.py.orig	2017-02-28 14:06:18.204843707 +0100
     +++ tables.py	2017-02-28 14:06:28.876881488 +0100
@@ -776,7 +745,7 @@ Since awsauth is used for polling you need to install that. However you only nee
 In the containers pip uses a local repository and openstack-ansible has deployed its own python, so because I am lazy I intalled the ubuntu package and linked it to the correct location (Ugly? Yes i know).
 
     apt-get install python-awsauth
-    ln -s /usr/lib/python2.7/dist-packages/awsauth.py /openstack/venvs/ceilometer-14.0.7/lib/python2.7/
+    ln -s /usr/lib/python2.7/dist-packages/awsauth.py /openstack/venvs/ceilometer-14.2.12/lib/python2.7/
 
 Then restart all the ceilometer containers.
 
