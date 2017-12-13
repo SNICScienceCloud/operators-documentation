@@ -8,13 +8,8 @@ Openstack Ansible was used for the Openstack deployment at HPC2N.
     git checkout stable/newton
 
 Some region and federation bugs were reported to openstack-ansible during the install.
-Make sure that you have the fixes for bug#1660322, bug#1660344, bug#1660626 and bug#1661197 before starting the deply.
 
-If your openstack-ansible does not include fixes for them then you can download them from here
-
-- [Fix for bug #1660322 and #1660344](bugfix/bug1660322_and_bug1660344_fix.tgz)
-- [Fix for bug #1660626](bugfix/bug1660626_fix.tgz)
-- [Fix for bug #1661197](bugfix/bug1661197_fix.tgz)
+With 14.2.12 the openstack-ansible bugs #1660322 and #1661197 are not fixed so you need to patch those before starting the deply.
 
 ## System map
 
@@ -512,9 +507,9 @@ Flavors are sorted by the ID, so set them in the correct order.
 
     openstack flavor create --ram 512 --disk 1 --vcpus 1 --id 8c704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.tiny
     openstack flavor create --ram 2048 --disk 20 --vcpus 1 --id 8d704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small
-    openstack flavor create --ram 4096 --disk 40 --vcpus 2 --id 8e704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium
-    openstack flavor create --ram 8192 --disk 80 --vcpus 4 --id 8f704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large
-    openstack flavor create --ram 16384 --disk 160 --vcpus 8 --id 90704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge
+    openstack flavor create --ram 4096 --disk 20 --vcpus 2 --id 8e704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium
+    openstack flavor create --ram 8192 --disk 20 --vcpus 4 --id 8f704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large
+    openstack flavor create --ram 16384 --disk 20 --vcpus 8 --id 90704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge
 
 ### Images
 
