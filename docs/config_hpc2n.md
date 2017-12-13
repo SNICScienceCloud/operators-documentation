@@ -11,6 +11,75 @@ Some region and federation bugs were reported to openstack-ansible during the in
 
 With 14.2.12 the openstack-ansible bugs #1660322 and #1661197 are not fixed so you need to patch those before starting the deply.
 
+To fix #1660322 apply these patches
+
+    --- /etc/ansible/roles/os_horizon/templates/horizon_local_settings.py.j2.orig 2017-01-30 13:29:54.368304450 +0100
+    +++ /etc/ansible/roles/os_horizon/templates/horizon_local_settings.py.j2 2017-01-30 13:30:48.981640641 +0100
+    @@ -175,7 +175,7 @@
+     WEBSSO_ENABLED = True
+
+     # Determines which authentication choice to show as default.
+    -WEBSSO_INITIAL_CHOICE = "credentials"
+    +WEBSSO_INITIAL_CHOICE = "{{ horizon_websso_initial_choice }}"
+
+     # The list of authentication mechanisms which include keystone
+     # federation protocols and identity provider/federation protocol
+
+
+    --- /etc/ansible/roles/os_horizon/defaults/main.yml.orig 2017-01-30 13:32:07.805795654 +0100
+    +++ /etc/ansible/roles/os_horizon/defaults/main.yml 2017-01-30 13:34:56.349573132 +0100
+    @@ -288,3 +288,6 @@
+
+     horizon_keystone_admin_roles:
+       - admin
+    +
+    +# Set the "credentials" authentication choice to show as default.
+    +horizon_websso_initial_choice: "credentials"
+
+To fix #1661197 apply this patch
+
+    --- /etc/ansible/roles/os_keystone/templates/shibboleth2.xml.j2.orig	2017-12-13 09:21:19.201605337 +0100
+    +++ /etc/ansible/roles/os_keystone/templates/shibboleth2.xml.j2	2017-12-13 09:19:43.890147472 +0100
+    @@ -5,14 +5,36 @@
+               xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+               clockSkew="180">
+     
+    +    <OutOfProcess>
+    +    <Extensions>
+    +    <Library path="memcache-store.so" fatal="true"/>
+    +    </Extensions>
+    +    </OutOfProcess>
+    +   
+    +    <StorageService type="MEMCACHE" id="mc" prefix="shibboleth2:">
+    +        <Hosts>
+    +            {{ memcached_servers }}
+    +        </Hosts>
+    +    </StorageService>
+    +   
+    +    <StorageService type="MEMCACHE" id="mc-ctx" prefix="shibboleth2:" buildMap="1">
+    +        <Hosts>
+    +            {{ memcached_servers }}
+    +        </Hosts>
+    +    </StorageService>
+    +   
+    +    <SessionCache type="StorageService" cacheTimeout="{{ horizon_session_timeout }}" StorageService="mc-ctx" StorageServiceLite="mc" />
+    +    <ReplayCache StorageService="mc"/>
+    +    <ArtifactMap StorageService="mc" artifactTTL="180"/>
+    +
+         <!-- The entityID is the name by which your IdP will know your SP. -->
+         <ApplicationDefaults entityID="{{ keystone_service_publicuri }}/shibboleth">
+     
+             <!-- You should use secure cookies if at all possible.  See cookieProps in this Wiki article. -->
+             <!-- https://wiki.shibboleth.net/confluence/display/SHIB2/NativeSPSessions -->
+    -        <Sessions lifetime="28800"
+    +        <Sessions lifetime="{{ horizon_session_timeout }}"
+                       timeout="3600"
+    -                  relayState="ss:mem"
+    +                  relayState="ss:mc"
+                       checkAddress="false"
+                       handlerSSL="{% if keystone_ssl | bool %}true{% else %}false{% endif %}"
+                       {% if keystone_service_publicuri_proto == "https" %}cookieProps="; path=/; secure"{% endif %}>
+    
 ## System map
 
 [![System map](img/ssc_hpc2n.png)](ssc_hpc2n.dia)
