@@ -45,9 +45,9 @@ To fix #1661197 apply this patch
                clockSkew="180">
      
     +    <OutOfProcess>
-    +    <Extensions>
-    +    <Library path="memcache-store.so" fatal="true"/>
-    +    </Extensions>
+    +        <Extensions>
+    +            <Library path="memcache-store.so" fatal="true"/>
+    +        </Extensions>
     +    </OutOfProcess>
     +   
     +    <StorageService type="MEMCACHE" id="mc" prefix="shibboleth2:">
