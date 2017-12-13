@@ -21,7 +21,7 @@
 ## Debug and Verbose options.
 debug: false
 
-apply_security_hardening: no
+apply_security_hardening: false
 
 # Region names
 
@@ -260,6 +260,7 @@ keystone_sp:
   trusted_dashboard_list:
     - "https://c3se.cloud.snic.se/auth/websso/"
     - "https://hpc2n.cloud.snic.se/auth/websso/"
+    - "https://uppmax.cloud.snic.se/auth/websso/"
   trusted_idp_list:
     - name: 'SUPR'
       entity_ids:
@@ -304,8 +305,9 @@ haproxy_extra_services:
         - "httpchk HEAD /"
   - service:
       haproxy_service_name: radosgw_service
-      haproxy_backend_nodes: "{{ groups['radosgw_all'] | default([])  }}"
+      haproxy_backend_nodes: "{{ groups['radosgw'] | default([])  }}"
       haproxy_port: 6000
+      haproxy_backend_port: 80
       haproxy_ssl: true
       haproxy_balance_type: "http"
       haproxy_backend_options:
