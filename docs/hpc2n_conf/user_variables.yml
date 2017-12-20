@@ -333,3 +333,9 @@ nova_ceilometer_enabled: true
 # Limit floating ip to 5
 neutron_quota_floatingip: 5
 openstack_domain: hpc2n.umu.se
+
+# Change ceilometer sample interval to one hour 
+ceilometer_disk_source_sample_interval: 86400
+ceilometer_network_source_sample_interval: 86400
+ceilometer_meter_sample_interval: 86400
+ceilometer_cpu_source_sample_interval: 86400
