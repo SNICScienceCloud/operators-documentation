@@ -1,5 +1,24 @@
 # System administration
 
+## Restore instances with error state after live migration failure
+
+Get a list of all servers in error state
+
+     openstack server list --all-projects -f csv | grep ERROR
+
+Check server status
+
+     openstack server show SERVER_UUID
+
+Reset status to active
+
+     nova reset-state --active SERVER_UUID
+
+If the server show command showed that the server is powered of (OS-EXT-STS:power_state  Shutdown)
+Then power the server off.
+
+	nova stop SERVER_UUID
+
 ## Project quota management
 
 Check a projects quota
