@@ -37,10 +37,14 @@ Changing a projects quota
 
 ### Check service health
 
+    
+    root@utility_container: #
     nova service-list
     cinder service-list
     heat service-list
     neutron agent-list
+
+    root@controller_host: #
     echo "show stat" | nc -U /var/run/haproxy.stat |grep -i down
 
 ### Controller host
