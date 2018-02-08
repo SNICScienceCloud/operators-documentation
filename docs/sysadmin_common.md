@@ -35,14 +35,13 @@ Changing a projects quota
 
 ## Infrastructure OS Pathing
 
-### Check state
+### Check service health
 
-nova service-list
-cinder service-list
-heat service-list
-neutron agent-list
-
-echo "show stat" | nc -U /var/run/haproxy.stat |grep -i down
+    nova service-list
+    cinder service-list
+    heat service-list
+    neutron agent-list
+    echo "show stat" | nc -U /var/run/haproxy.stat |grep -i down
 
 ### Controller host
 
