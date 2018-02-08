@@ -35,6 +35,15 @@ Changing a projects quota
 
 ## Infrastructure OS Pathing
 
+### Check state
+
+nova service-list
+cinder service-list
+heat service-list
+neutron agent-list
+
+echo "show stat" | nc -U /var/run/haproxy.stat |grep -i down
+
 ### Controller host
 
 Disable services in haproxy
