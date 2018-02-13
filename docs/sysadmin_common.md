@@ -39,13 +39,26 @@ Changing a projects quota
 
     
     root@utility_container: #
+    
     nova service-list
+    # State should be 'up'
+
     cinder service-list
+    # State should be 'up'
+
     heat service-list
+    # Status should be 'up'
+
     neutron agent-list
+    # Alive should be ':-)'
+
+    mysql -e 'show status like "%wsrep_cluster%"'
+    # Size should be 3 and status should be 'Primary'
 
     root@controller_host: #
+
     echo "show stat" | nc -U /var/run/haproxy.stat |grep -i down
+    # You should not see anyting with 'down' state
 
 ### Controller host
 
