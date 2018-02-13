@@ -1,3 +1,4 @@
+    # State should be 'up'
 # System administration
 
 ## Restore instances with error state after live migration failure
@@ -33,7 +34,7 @@ Changing a projects quota
 
     openstack quota set --instances=200 "SNIC 2017/13-7"
 
-## Infrastructure OS Pathing
+## Infrastructure OS Patching
 
 ### Check service health
 
