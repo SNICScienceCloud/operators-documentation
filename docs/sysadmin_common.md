@@ -1,4 +1,3 @@
-    # State should be 'up'
 # System administration
 
 ## Restore instances with error state after live migration failure
@@ -38,6 +37,7 @@ Changing a projects quota
 
 ### Check service health
 
+Check services and mysql
     
     root@utility_container: #
     
@@ -55,6 +55,8 @@ Changing a projects quota
 
     mysql -e 'show status like "%wsrep_cluster%"'
     # Size should be 3 and status should be 'Primary'
+
+Check haproxy
 
     root@controller_host: #
 
