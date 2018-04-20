@@ -332,6 +332,10 @@ nova_ceilometer_enabled: true
 
 # Limit floating ip to 5
 neutron_quota_floatingip: 5
+
+# Comma-separated list of DNS servers to be used by dnsmasq as forwarders.
+neutron_dnsmasq_dns_servers: 130.239.1.90, 130.239.4.100
+
 openstack_domain: hpc2n.umu.se
 
 # Change ceilometer sample interval to one hour 
