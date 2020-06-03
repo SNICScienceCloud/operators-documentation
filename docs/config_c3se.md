@@ -1,11 +1,11 @@
-# Openstack Newton Deployment at C3SE
+# Openstack Rocky Deployment at C3SE
 
 ## General
 
 Openstack Ansible was used for the Openstack deployment at C3SE.
 
     git clone https://git.openstack.org/openstack/openstack-ansible
-    git checkout stable/newton
+    git checkout stable/rocky
 
 Some region and federation bugs were reported to openstack-ansible during the install.
 Make sure that you have the fixes for bug#1660322, bug#1660344, bug#1660626 and bug#1661197 before starting the deploy.
@@ -22,71 +22,44 @@ If your openstack-ansible does not include fixes for them then you can download 
 
 ## Hardware setup
 
-### Compute nodes x 40
+### Compute nodes x 4
 
-- HP DL170 G6
-- 2 x 4 Core Intel(R) Xeon(R) CPU E5520 @ 2.27GHz
-- 24G - 48G RAM
-- 1 x 250G SAS Disks
+- Intel servers
+- 2 x 16 Core Intel(R) Xeon(R) Gold CPU 6130
+- 196 GB RAM
+- 1 x 450G SSD Disk
 
 ### Control nodes x 3
 
-- Dell PowerEdge R720xd
-- 2 x 6 Core Intel(R) Xeon(R) CPU E5-2630 @ 2.30GHz
-- 96G RAM
-- 2 x 200G SAS Disks in a RAID 1 mirror.
+- Super Micro servers
+- 2 x 20 Core Intel(R) Xeon(R) Silver 4114
+- 196G RAM
+- 2 x 250G SSD Disks in a RAID 1 mirror.
 
-### Storage nodes x 4
+### Storage nodes x 13
 
-- Dell PowerEdge R720xd
-- 2 x 6 Core Intel(R) Xeon(R) CPU E5-2630 @ 2.30GHz
-- 96G RAM
-- 2 x 200G part of 2T SATA Disks in a RAID 1 mirror.
-- 9.1T for Ceph storage*
+- Super Micro servers
+- 2 x 16 Core Intel(R) Xeon(R) Silver 4216 CPU
+- 384G RAM
+- 24 x 10T
+- 300T for reserved for SSC Ceph storage
 
 
 
 ## Node setup
 
-All nodes run Ubuntu 16.04 and they are installed with Cobbler, the C3SE standard for server installation.
+All nodes run Ubuntu 18.04 and they are installed with Cobbler, the C3SE standard for server installation.
 
 ### Compute node post cobbler stuff
 
-All stuff is not yet fixed with cobbler so after the initial installation of the host has completed we need to run some commands and then configure the networks.
+All stuff is not yet fixed with cobbler so after the initial installation of the host has completed we need to run some ansible playbook to set things up.
 
-    # install default packages
-    pdsh -g cirruscompute apt-get install -y bridge-utils debootstrap ifenslave ifenslave-2.6 lsof lvm2 ntp ntpdate openssh-server sudo tcpdump vlan python iptables vim
-
-    # add required modules to /etc/modules
-    pdsh -g cirruscompute "echo 'bonding' >> /etc/modules"
-    pdsh -g cirruscompute "echo '8021q' >> /etc/modules"
-
-    # copy hosts.allow
-    pdcp -g cirruscompute hosts.allow /etc/hosts.allow
-
-### Management node post cobbler stuff
-
-All stuff is not yet fixed with cobbler so after the initial installation of the host has completed we need to run some commands and then configure the networks.
-
-    # install default packages
-    pdsh -g cirruscompute apt-get install -y bridge-utils debootstrap ifenslave ifenslave-2.6 lsof lvm2 ntp ntpdate openssh-server sudo tcpdump vlan python iptables vim
-
-    # add required modules to /etc/modules
-    pdsh -g cirruscompute "echo 'bonding' >> /etc/modules"
-    pdsh -g cirruscompute "echo '8021q' >> /etc/modules"
-
-    # copy hosts.allow
-    pdcp -g cirruscompute hosts.allow /etc/hosts.allow
-
-    # also fix iptables-rules for internet-facing hosts
-    scp cirrus0-iptables.rules cirrus0:/etc/iptables.rules
-    scp cirrus1-iptables.rules cirrus1:/etc/iptables.rules
-    scp cirrus2-iptables.rules cirrus2:/etc/iptables.rules
-
+    # Prepare nodes pre openstack-ansible
+    ansible-playbook setup-ssc.yml
 
 ## Openstack Ansible
 
-The host cirrus-deploy is deployment-host for openstack-ansible.
+The host sscv2-deploy is deployment-host for openstack-ansible.
 SSH is used for access to destination hosts. SSH-Keys are used for containers.
 
 The rest of the setup follows openstack-ansible refrence manual for installation.
@@ -210,46 +183,10 @@ Linux-bridges are used for the for the vlan and vxlan traffic.
 
     source /etc/network/interfaces.d/*.cfg
 
-- cirrus53-1 has IP suffix .33
-- cirrus53-2 has IP suffix .34
-- cirrus53-3 has IP suffix .35
-- cirrus53-4 has IP suffix .36
-- cirrus54-1 has IP suffix .37
-- cirrus54-2 has IP suffix .38
-- cirrus54-3 has IP suffix .39
-- cirrus54-4 has IP suffix .40
-- cirrus55-2 has IP suffix .42
-- cirrus55-3 has IP suffix .43
-- cirrus55-4 has IP suffix .44
-- cirrus56-1 has IP suffix .45
-- cirrus56-2 has IP suffix .46
-- cirrus56-3 has IP suffix .47
-- cirrus57-2 has IP suffix .50
-- cirrus57-3 has IP suffix .51
-- cirrus58-2 has IP suffix .54
-- cirrus58-3 has IP suffix .55
-- cirrus58-4 has IP suffix .56
-- cirrus59-1 has IP suffix .57
-- cirrus59-2 has IP suffix .58
-- cirrus60-2 has IP suffix .30
-- cirrus60-3 has IP suffix .31
-- cirrus60-4 has IP suffix .32
-- cirrus63-1 has IP suffix .13
-- cirrus63-2 has IP suffix .14
-- cirrus63-3 has IP suffix .15
-- cirrus64-1 has IP suffix .17
-- cirrus64-2 has IP suffix .18
-- cirrus64-3 has IP suffix .19
-- cirrus64-4 has IP suffix .20
-- cirrus65-1 has IP suffix .21
-- cirrus65-2 has IP suffix .22
-- cirrus65-3 has IP suffix .23
-- cirrus65-4 has IP suffix .24
-- cirrus66-1 has IP suffix .25
-- cirrus66-4 has IP suffix .28
-- cirrus67-1 has IP suffix .1
-- cirrus67-2 has IP suffix .2
-- cirrus67-3 has IP suffix .3
+- cirrus101-1 has IP suffix .101
+- cirrus101-2 has IP suffix .102
+- cirrus101-3 has IP suffix .103
+- cirrus101-4 has IP suffix .104
 
 ### Management node interfaces
 
@@ -336,53 +273,6 @@ Create a backup script in all galera containers
 
     chmod +x /etc/cron.hourly/mysqldump
 
-
-## Ceilometer
-
-### Setup mogoDB
-
-MongoDB is not setup by the openstack ansible scripts
-
-The mongoDB dabase is installed on the controller node u-mn-24 using the following commands
-
-    apt-get install mongodb-server mongodb-clients python-pymongo
-    sed -i 's/127.0.0.1/10.33.1.160/g' /etc/mongodb.conf
-    echo smallfiles = true >> /etc/mongodb.conf
-    service mongodb restart
-
-Get **CEILOMETER_DBPASS** from `ceilometer_container_db_password` in `/etc/openstack_deploy/user_secrets.yml` on deploy host `cirrus-deploy`
-
-    mongo --host 10.33.1.160 --eval '
-    db = db.getSiblingDB("ceilometer");
-    db.addUser({user: "ceilometer",
-    pwd: "**CEILOMETER_DBPASS**",
-    roles: [ "readWrite", "dbAdmin" ]})'
-
-### Database cleanup
-
-Configure how long the samples and events should be stored in the database.
-
-We will only keep them for 7 days.
-
-On the deploy host edit /etc/ansible/roles/os_ceilometer/templates/ceilometer.conf.j2. Add metering_time_to_live and event_time_to_live
-
-    --- ceilometer.conf.j2.old	2017-02-14 11:25:45.470152855 +0100
-    +++ ceilometer.conf.j2.new	2017-02-14 11:25:54.481702171 +0100
-    @@ -106,6 +106,8 @@
-     [database]
-     metering_connection = {{ ceilometer_connection_string }}
-     event_connection = {{ ceilometer_connection_string }}
-    +metering_time_to_live = {{ ceilometer_metering_time_to_live }}
-    +event_time_to_live = {{ ceilometer_event_time_to_live }}
-
-     {% if ceilometer_gnocchi_enabled | bool %}
-      [dispatcher_gnocchi]
-
-Edit your user_variables.yml and add the variables
-
-    ceilometer_metering_time_to_live: 604800
-    ceilometer_event_time_to_live: 604800
-
 ## Horizon
 
 ### "Drop down" patch for regions
@@ -406,7 +296,7 @@ Run the following commands in all horizon containers.
       <ul id="region_list" class="dropdown-menu dropdown-menu-left">
            <li class="dropdown-header">{% trans "Regions:" %}</li>
            <li>
-             <a href="https://c3se.cloud.snic.se/project">
+             <a href="https://west-1.cloud.snic.se/project">
                C3SE
              </a>
            </li>
@@ -416,7 +306,7 @@ Run the following commands in all horizon containers.
              </a>
            </li>
            <li>
-             <a href="https://uppmax.cloud.snic.se/project">
+             <a href="https://east-1.cloud.snic.se/project">
                UPPMAX
              </a>
            </li>
@@ -499,11 +389,23 @@ Edit /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashb
 
 Flavors are sorted by the ID, so set them in the correct order.
 
-    openstack flavor create --ram 512 --disk 1 --vcpus 1 --id 8c704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.tiny
-    openstack flavor create --ram 2048 --disk 20 --vcpus 1 --id 8d704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small
-    openstack flavor create --ram 4096 --disk 40 --vcpus 2 --id 8e704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium
-    openstack flavor create --ram 8192 --disk 80 --vcpus 4 --id 8f704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large
-    openstack flavor create --ram 16384 --disk 160 --vcpus 8 --id 8g704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge
+  openstack flavor create --ram 1 --disk 20 --vcpus 1 --id 11704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.parked
+  openstack flavor create --ram 512 --disk 20 --vcpus 1 --id 8c704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.tiny
+  openstack flavor create --ram 1024 --disk 20 --vcpus 1 --id 8c804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xsmall
+  openstack flavor create --ram 1024 --disk 20 --vcpus 2 --id 8c904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xsmall.highcpu
+  openstack flavor create --ram 2048 --disk 20 --vcpus 1 --id 8cA04ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xsmall.highmem
+  openstack flavor create --ram 2048 --disk 20 --vcpus 1 --id 8d704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small
+  openstack flavor create --ram 2048 --disk 20 --vcpus 2 --id 8d804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small.highcpu
+  openstack flavor create --ram 4096 --disk 20 --vcpus 1 --id 8d904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small.highmem
+  openstack flavor create --ram 4096 --disk 20 --vcpus 2 --id 8e704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium
+  openstack flavor create --ram 4096 --disk 20 --vcpus 4 --id 8e804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium.highcpu
+  openstack flavor create --ram 8192 --disk 20 --vcpus 2 --id 8e904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium.highmem
+  openstack flavor create --ram 8192 --disk 20 --vcpus 4 --id 8f704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large
+  openstack flavor create --ram 8192 --disk 20 --vcpus 8 --id 8f804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large.highcpu
+  openstack flavor create --ram 16384 --disk 20 --vcpus 4 --id 8f904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large.highmem
+  openstack flavor create --ram 16384 --disk 20 --vcpus 8 --id 90704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge
+  openstack flavor create --ram 16384 --disk 20 --vcpus 16 --id 90714ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge.highcpu
+  openstack flavor create --ram 32768 --disk 20 --vcpus 8 --id 90724ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge.highmem
 
 ### Images
 
