@@ -389,23 +389,23 @@ Edit /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashb
 
 Flavors are sorted by the ID, so set them in the correct order.
 
-  openstack flavor create --ram 1 --disk 20 --vcpus 1 --id 11704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.parked
-  openstack flavor create --ram 512 --disk 20 --vcpus 1 --id 8c704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.tiny
-  openstack flavor create --ram 1024 --disk 20 --vcpus 1 --id 8c804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xsmall
-  openstack flavor create --ram 1024 --disk 20 --vcpus 2 --id 8c904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xsmall.highcpu
-  openstack flavor create --ram 2048 --disk 20 --vcpus 1 --id 8cA04ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xsmall.highmem
-  openstack flavor create --ram 2048 --disk 20 --vcpus 1 --id 8d704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small
-  openstack flavor create --ram 2048 --disk 20 --vcpus 2 --id 8d804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small.highcpu
-  openstack flavor create --ram 4096 --disk 20 --vcpus 1 --id 8d904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small.highmem
-  openstack flavor create --ram 4096 --disk 20 --vcpus 2 --id 8e704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium
-  openstack flavor create --ram 4096 --disk 20 --vcpus 4 --id 8e804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium.highcpu
-  openstack flavor create --ram 8192 --disk 20 --vcpus 2 --id 8e904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium.highmem
-  openstack flavor create --ram 8192 --disk 20 --vcpus 4 --id 8f704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large
-  openstack flavor create --ram 8192 --disk 20 --vcpus 8 --id 8f804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large.highcpu
-  openstack flavor create --ram 16384 --disk 20 --vcpus 4 --id 8f904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large.highmem
-  openstack flavor create --ram 16384 --disk 20 --vcpus 8 --id 90704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge
-  openstack flavor create --ram 16384 --disk 20 --vcpus 16 --id 90714ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge.highcpu
-  openstack flavor create --ram 32768 --disk 20 --vcpus 8 --id 90724ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge.highmem
+    openstack flavor create --ram 1 --disk 20 --vcpus 1 --id 11704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.parked
+    openstack flavor create --ram 512 --disk 20 --vcpus 1 --id 8c704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.tiny
+    openstack flavor create --ram 1024 --disk 20 --vcpus 1 --id 8c804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xsmall
+    openstack flavor create --ram 1024 --disk 20 --vcpus 2 --id 8c904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xsmall.highcpu
+    openstack flavor create --ram 2048 --disk 20 --vcpus 1 --id 8cA04ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xsmall.highmem
+    openstack flavor create --ram 2048 --disk 20 --vcpus 1 --id 8d704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small
+    openstack flavor create --ram 2048 --disk 20 --vcpus 2 --id 8d804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small.highcpu
+    openstack flavor create --ram 4096 --disk 20 --vcpus 1 --id 8d904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.small.highmem
+    openstack flavor create --ram 4096 --disk 20 --vcpus 2 --id 8e704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium
+    openstack flavor create --ram 4096 --disk 20 --vcpus 4 --id 8e804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium.highcpu
+    openstack flavor create --ram 8192 --disk 20 --vcpus 2 --id 8e904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.medium.highmem
+    openstack flavor create --ram 8192 --disk 20 --vcpus 4 --id 8f704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large
+    openstack flavor create --ram 8192 --disk 20 --vcpus 8 --id 8f804ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large.highcpu
+    openstack flavor create --ram 16384 --disk 20 --vcpus 4 --id 8f904ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.large.highmem
+    openstack flavor create --ram 16384 --disk 20 --vcpus 8 --id 90704ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge
+    openstack flavor create --ram 16384 --disk 20 --vcpus 16 --id 90714ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge.highcpu
+    openstack flavor create --ram 32768 --disk 20 --vcpus 8 --id 90724ef9-74dc-495e-9e2b-baebc6775b16 --public ssc.xlarge.highmem
 
 ### Images
 
