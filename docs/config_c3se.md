@@ -7,15 +7,6 @@ Openstack Ansible was used for the Openstack deployment at C3SE.
     git clone https://git.openstack.org/openstack/openstack-ansible
     git checkout stable/rocky
 
-Some region and federation bugs were reported to openstack-ansible during the install.
-Make sure that you have the fixes for bug#1660322, bug#1660344, bug#1660626 and bug#1661197 before starting the deploy.
-
-If your openstack-ansible does not include fixes for them then you can download them from here
-
-- [Fix for bug #1660322 and #1660344](bugfix/bug1660322_and_bug1660344_fix.tgz)
-- [Fix for bug #1660626](bugfix/bug1660626_fix.tgz)
-- [Fix for bug #1661197](bugfix/bug1661197_fix.tgz)
-
 ## System map
 
 [![System map](img/ssc_c3se.png)](ssc_c3se.dia)
@@ -72,7 +63,7 @@ The following configuraton files were used for deployment.
 
 ## Network
 
-Linux-bridges are used for the for the vlan and vxlan traffic.
+Linux-bridges are used for the for the vlan, storage and vxlan traffic.
 
 ### Compute node interfaces
 
@@ -101,87 +92,63 @@ Linux-bridges are used for the for the vlan and vxlan traffic.
     iface lo inet loopback
 
     # The primary network interface
-    auto enp5s0f1
-    iface enp5s0f1 inet manual
+    auto eno1
+    iface eno1 inet manual
 
-    # Storage network VLAN interface
-    auto enp5s0f1.1032
-    iface enp5s0f1.1032 inet manual
-    vlan-raw-device enp5s0f1
+/etc/network/interfaces.d/br-mgmt.cfg
 
-    # Management VLAN
-    auto enp5s0f1.1033
-    iface enp5s0f1.1033 inet manual
-    vlan-raw-device enp5s0f1
-
-    # OpenStack Networking VXLAN
-    auto enp5s0f1.1034
-    iface enp5s0f1.1034 inet manual
-    vlan-raw-device enp5s0f1
-
-    # OpenStack Networking VLAN
-    auto enp5s0f1.1035
-    iface enp5s0f1.1035 inet manual
-    vlan-raw-device enp5s0f1
-
-    auto enp5s0f1.10
-    iface enp5s0f1.10 inet manual
-    vlan-raw-device enp5s0f1
-
-    # Container/Host management bridge
     auto br-mgmt
     iface br-mgmt inet static
-    bridge_stp off
-    bridge_waitport 0
-    bridge_fd 0
-    bridge_ports enp5s0f1.1033
-    address 10.33.2.X
-    netmask 255.255.0.0
-    gateway 10.33.1.185
-    dns-nameservers 129.16.1.53 129.16.2.53
+           bridge_ports eno1
+           address 10.38.1.170
+           netmask 255.255.0.0
 
-    # OpenStack Networking VXLAN (tunnel/overlay) bridge
-    #
-    # Only the COMPUTE and NETWORK nodes must have an IP address
-    # on this bridge. When used by infrastructure nodes, the
-    # IP addresses are assigned to containers which use this
-    # bridge.
-    #
+/etc/network/interfaces.d/bond0-1039.cfg
+
     auto br-vxlan
     iface br-vxlan inet static
     bridge_stp off
     bridge_waitport 0
     bridge_fd 0
-    bridge_ports enp5s0f1.1034
-    address 10.34.2.X
+    bridge_ports bond1.1039
+    address 10.39.1.170
     netmask 255.255.0.0
 
+/etc/network/interfaces.d/br-vxlan.cfg
 
-    # OpenStack Networking VLAN bridge
+    auto br-vxlan
+    iface br-vxlan inet static
+        bridge_stp off
+        bridge_waitport 0
+        bridge_fd 0
+        bridge_ports bond1.1039
+        address 10.39.1.170
+        netmask 255.255.0.0
+
+/etc/network/interfaces.d/bond0-1043.cfg
+
+    auto bond0.1043
+    iface bond0.1043 inet manual
+    vlan-raw-device bond0
+
+/etc/network/interfaces.d/br-storage.cfg
+
+    auto br-storage
+    iface br-storage inet manual
+        bridge_stp off
+        bridge_waitport 0
+        bridge_fd 0
+        bridge_ports bond0.1043
+
+/etc/network/interfaces.d/br-vlan.cfg
+
     auto br-vlan
     iface br-vlan inet manual
-    bridge_stp off
-    bridge_waitport 0
-    bridge_fd 0
-    bridge_ports enp5s0f1
+       bridge_stp off
+       bridge_waitport 0
+       bridge_fd 0
+       bridge_ports bond0
 
-    # Storage bridge (optional)
-    #
-    # Only the COMPUTE and STORAGE nodes must have an IP address
-    # on this bridge. When used by infrastructure nodes, the
-    # IP addresses are assigned to containers which use this
-    # bridge.
-    #
-    auto br-storage
-    iface br-storage inet static
-    bridge_stp off
-    bridge_waitport 0
-    bridge_fd 0
-    bridge_ports enp5s0f1.1032
-    address 10.32.2.X
-    netmask 255.255.0.0
-
-    source /etc/network/interfaces.d/*.cfg
 
 - cirrus101-1 has IP suffix .101
 - cirrus101-2 has IP suffix .102
@@ -238,10 +205,9 @@ Linux-bridges are used for the for the vlan and vxlan traffic.
     address 172.16.1.X
     netmask 255.255.255.0
 
-- cirrus0 has IP suffix .160
-- cirrus1 has IP suffix .161
-- cirrus2 has IP suffix .162
-- cirrus3 has IP suffix .163 (not part of OpenStack, just ceph)
+- cirrus10 has IP suffix .170
+- cirrus11 has IP suffix .171
+- cirrus12 has IP suffix .172
 
 ### Floating IPv4 Pool
 
@@ -313,76 +279,6 @@ Run the following commands in all horizon containers.
       </ul>
     EOF
 
-### Move dropdown to the left
-
-The region dropdown is hard to see all the way to the left so we move it to the right.
-
-Patch /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashboard/templates/header/_header.html
-
-    --- header/_header.html.orig	2017-02-21 11:13:12.357429096 +0100
-    +++ header/_header.html	2017-02-21 11:17:19.858355731 +0100
-    @@ -26,11 +26,11 @@
-         <div class="collapse navbar-collapse" id="navbar-collapse">
-           <ul class="nav navbar-nav">
-             {% include "header/_context_selection.html" %}
-    +        {% include "header/_region_selection.html" %}
-           </ul>
-
-           <ul class="nav navbar-nav navbar-right">
-             {% include "header/_user_menu.html" %}
-    -        {% include "header/_region_selection.html" %}
-           </ul>
-         </div><!-- /.navbar-collapse -->
-       </div><!-- /.container-fluid -->
-
-### Fix for broken POLICY_CHECK_FUNCTION check
-
-The version of horizon checked out by openstack-ansible has a bug causing the Admin panel to show for non admin users.
-
-This bug is solved in later versions of horizon but you can do a quickfix by editing /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashboard/dashboards/admin/dashboard.py
-
-Replace
-
-    class Admin(horizon.Dashboard):
-        name = _("Admin")
-        slug = "admin"
-
-        if getattr(settings, 'POLICY_CHECK_FUNCTION', None):
-            policy_rules = (('identity', 'admin_required'),
-                            ('image', 'context_is_admin'),
-                            ('volume', 'context_is_admin'),
-                            ('compute', 'context_is_admin'),
-                            ('network', 'context_is_admin'),
-                            ('orchestration', 'context_is_admin'),)
-        else:
-            permissions = (tuple(utils.get_admin_permissions()),)
-
-With
-
-    class Admin(horizon.Dashboard):
-        name = _("Admin")
-        slug = "admin"
-
-        permissions = (tuple(utils.get_admin_permissions()),)
-
-
-### Remove Download of RCv2 from Access & Security page
-
-We do not support v2 authentication. Remove it so the users do not get confused.
-
-Edit /openstack/venvs/horizon-14.0.7/lib/python2.7/site-packages/openstack_dashboard/dashboards/project/access_and_security/api_access/tables.py
-
-    --- tables.py.orig	2017-02-28 14:06:18.204843707 +0100
-    +++ tables.py	2017-02-28 14:06:28.876881488 +0100
-    @@ -107,5 +107,5 @@
-             name = "endpoints"
-             verbose_name = _("API Endpoints")
-             multi_select = False
-    -        table_actions = (DownloadOpenRCv2, DownloadOpenRC, DownloadEC2,
-    +        table_actions = (DownloadOpenRC, DownloadEC2,
-                              ViewCredentials, RecreateCredentials)
-
-
 ## Glance
 
 ### Flavors
@@ -412,21 +308,21 @@ Flavors are sorted by the ID, so set them in the correct order.
 These are the ones used at installation time, make sure to use the latest available and update description.
 Do not just copy the block because it will fail to fecth some of the images.
 
-    wget https://cloud-images.ubuntu.com/xenial/20170128/xenial-server-cloudimg-amd64-disk1.img
-    glance image-create --progress --file xenial-server-cloudimg-amd64-disk1.img --visibility public --name "Ubuntu 16.04 LTS (Xenial Xerus) Daily Build [20170128]" --disk-format qcow2 --container-format bare --min-disk 3
-    rm xenial-server-cloudimg-amd64-disk1.img
+    wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64-disk1.img
+    glance image-create --progress --file bionic-server-cloudimg-amd64-disk1.img --visibility public --name "Ubuntu 18.04 LTS (Bionic Beaver) Daily Build [20200128]" --disk-format qcow2 --container-format bare --min-disk 3
+    rm bionic-server-cloudimg-amd64-disk1.img
 
     wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1611.qcow2
-    glance image-create --progress --file CentOS-7-x86_64-GenericCloud-1611.qcow2 --visibility public --name "Centos 7 [20170117]" --disk-format qcow2 --container-format bare --min-disk 8
+    glance image-create --progress --file CentOS-7-x86_64-GenericCloud-1611.qcow2 --visibility public --name "Centos 7 [20200117]" --disk-format qcow2 --container-format bare --min-disk 8
     rm CentOS-7-x86_64-GenericCloud-1611.qcow2
 
     wget http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
-    glance image-create --progress --file cirros-0.3.4-x86_64-disk.img --visibility public --name "Cirros 0.3.4 [20150507]" --disk-format qcow2 --container-format bare --min-disk 1
+    glance image-create --progress --file cirros-0.3.4-x86_64-disk.img --visibility public --name "Cirros 0.3.4 [20200507]" --disk-format qcow2 --container-format bare --min-disk 1
     rm cirros-0.3.4-x86_64-disk.img
 
-    wget https://cloud-images.ubuntu.com/trusty/20170202/trusty-server-cloudimg-amd64-disk1.img
-    glance image-create --progress --file trusty-server-cloudimg-amd64-disk1.img --visibility public --name "Ubuntu 14.04 LTS (Trusty Tahr) Daily Build [20170202]" --disk-format qcow2 --container-format bare --min-disk 3
-    rm trusty-server-cloudimg-amd64-disk1.img
+    wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64-disk1.img
+    glance image-create --progress --file focal-server-cloudimg-amd64-disk1.img --visibility public --name "Ubuntu 14.04 LTS (Focal Fossa) Daily Build [20200202]" --disk-format qcow2 --container-format bare --min-disk 3
+    rm focal-server-cloudimg-amd64-disk1.img
 
     wget https://stable.release.core-os.net/amd64-usr/1235.9.0/coreos_production_openstack_image.img.bz2
     bzip2 -d coreos_production_openstack_image.img.bz2

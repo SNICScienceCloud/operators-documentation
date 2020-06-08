@@ -19,9 +19,26 @@
 ###
 
 ## Debug and Verbose options.
-debug: true
+debug: false
 
-apply_security_hardening: no
+# apply_security_hardening: no
+## Set the service setup host
+# The default is to use localhost (the deploy host where ansible runs),
+# but any other host can be used. If using an alternative host with all
+# required libraries in a venv (eg: the utility container) then the
+# python interpreter needs to be set. If it is not, the default is to
+# the system python interpreter.
+# If you wish to use the first utility container in the inventory for
+# all service setup tasks, uncomment the following.
+#
+#openstack_service_setup_host: "{{ groups['utility_all'][0] }}"
+#openstack_service_setup_host_python_interpreter: "/openstack/venvs/utility-{{ openstack_release }}/bin/python"
+
+## Installation method for OpenStack services
+# Default option (source) is to install the OpenStack services using PIP
+# packages. An alternative method (distro) is to use the distribution cloud
+# repositories to install OpenStack using distribution packages
+install_method: source
 
 # Region names
 
@@ -45,6 +62,7 @@ sahara_service_region: C3SE
 swift_service_region: C3SE
 trove_service_region: C3SE
 
+
 ## Common Glance Overrides
 # Set glance_default_store to "swift" if using Cloud Files backend
 # or "rbd" if using ceph backend; the latter will trigger ceph to get
@@ -61,20 +79,25 @@ trove_service_region: C3SE
 # glance_rbd_store_chunk_size: 8
 
 glance_ceph_client: glance
-glance_rbd_store_pool: glance-images
+glance_rbd_store_pool: ssc-glance-images-md
 glance_rbd_store_chunk_size: 8
 glance_default_store: rbd
 glance_notification_driver: noop
-glance_swift_store_endpoint_type: internalURL
+#glance_swift_store_endpoint_type: internalURL
+glance_swift_store_endpoint_type: publicURL
+ceph_stable_release: mimic
 
-
+glance_glance_api_conf_overrides:
+  cors:
+    allowed_origin: https://west-1.cloud.snic.se
 
 ## Common Nova Overrides
 # When nova_libvirt_images_rbd_pool is defined, ceph will be installed on nova
 # hosts.
 # nova_libvirt_images_rbd_pool: vms
 
-nova_libvirt_images_rbd_pool: nova-vms
+nova_libvirt_images_rbd_pool: ssc-nova-vms-md
+
 
 nova_force_config_drive: False
 
@@ -86,7 +109,7 @@ nova_nova_conf_overrides:
 
 # If you wish to change the dhcp_domain configured for both nova and neutron
 # dhcp_domain: openstacklocal
-
+#neutron_l2_population: True
 ## Common Glance Overrides when using a Swift back-end
 # By default when 'glance_default_store' is set to 'swift' the playbooks will
 # expect to use the Swift back-end that is configured in the same inventory.
@@ -102,51 +125,35 @@ nova_nova_conf_overrides:
 #
 # glance_swift_store_auth_version: 3
 # glance_swift_store_auth_address: "https://some.auth.url.com"
+# glance_swift_store_user: "OPENSTACK_TENANT_ID:OPENSTACK_USER_NAME"
 # glance_swift_store_key: "OPENSTACK_USER_PASSWORD"
 # glance_swift_store_container: "NAME_OF_SWIFT_CONTAINER"
 # glance_swift_store_region: "NAME_OF_REGION"
-
+cephx: true
+#ceph_extra_confs:
+#-  src: "/etc/openstack_deploy/custom/ceph.client.cinder.keyring"
+#   dest: "/etc/ceph/ceph.client.adminr.keyring"
 ## Common Ceph Overrides
 ceph_mons:
-   - 10.32.1.160
-   - 10.32.1.161
-   - 10.32.1.162
-   - 10.32.1.163
-
-## Custom Ceph Configuration File (ceph.conf)
-# By default, your deployment host will connect to one of the mons defined above to
-# obtain a copy of your cluster's ceph.conf.  If you prefer, uncomment ceph_conf_file
-# and customise to avoid ceph.conf being copied from a mon.
-ceph_conf_file: |
-  [global]
-  fsid = 5a07c088-f5b7-4f3c-a1e2-ed6079562106
-  mon_initial_members = {{ ceph_mons|join(',') }}
-  mon_host = {{ ceph_mons|join(',') }}
-  auth_cluster_required = cephx
-  auth_service_required = cephx
-
-ceph_mon_host: 10.32.1.160
+  - 10.38.20.1
+  - 10.38.20.2
+  - 10.38.20.3
 
 ## Custom Ceph Configuration File (ceph.conf)
 # By default, your deployment host will connect to one of the mons defined above to
 # obtain a copy of your cluster's ceph.conf.  If you prefer, uncomment ceph_conf_file
 # and customise to avoid ceph.conf being copied from a mon.
 #ceph_conf_file: |
-#  [global]
-#  fsid = 00000000-1111-2222-3333-444444444444
-#  mon_initial_members = mon1.example.local,mon2.example.local,mon3.example.local
-#  mon_host = 10.16.5.40,10.16.5.41,10.16.5.42
-#  # optionally, you can use this construct to avoid defining this list twice:
-#  # mon_host = {{ ceph_mons|join(',') }}
-#  auth_cluster_required = cephx
-#  auth_service_required = cephx
+#   [global]
+#   fsid = fsid = dab1e177-d6d2-4fd1-b1a9-ed7cf93d87d9
+#   mon_initial_members = cephyr-mon1,cephyr-mon2,cephyr-mon3
+#   mon_host = 10.43.20.1,10.43.20.2,10.43.20.3
+#   auth_cluster_required = cephx
+#   auth_service_required = cephx
+#   auth_client_required = cephx
+#   # optionally, you can use this construct to avoid defining this list twice:
+#   # mon_host = {{ ceph_mons|join(',') }}
 
-## Cinder
-# Ceph client user for cinder to connect to the ceph cluster
-cinder_ceph_client: cinder
-ceph_pkg_source: distro
-ceph_stable_release: jewel
-cephx: true
 
 # By default, openstack-ansible configures all OpenStack services to talk to
 # RabbitMQ over encrypted connections on port 5671. To opt-out of this default,
@@ -181,7 +188,10 @@ rabbitmq_use_ssl: false
 # placed both on the hosts and inside the containers.
 
 ## Example environment variable setup:
+## This is used by apt-cacher-ng to download apt packages:
 # proxy_env_url: http://username:pa$$w0rd@10.10.10.9:9000/
+
+## (1) This sets up a permanent environment, used during and after deployment:
 # no_proxy_env: "localhost,127.0.0.1,{{ internal_lb_vip_address }},{{ external_lb_vip_address }},{% for host in groups['all_containers'] %}{{ hostvars[host]['container_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
 # global_environment_variables:
 #   HTTP_PROXY: "{{ proxy_env_url }}"
@@ -190,6 +200,12 @@ rabbitmq_use_ssl: false
 #   http_proxy: "{{ proxy_env_url }}"
 #   https_proxy: "{{ proxy_env_url }}"
 #   no_proxy: "{{ no_proxy_env }}"
+#
+## (2) This is applied only during deployment, nothing is left after deployment is complete:
+# deployment_environment_variables:
+#   http_proxy: "{{ proxy_env_url }}"
+#   https_proxy: "{{ proxy_env_url }}"
+#   no_proxy: "localhost,127.0.0.1,{{ internal_lb_vip_address }},{{ external_lb_vip_address }},{% for host in groups['keystone_all'] %}{{ hostvars[host]['container_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
 
 
 ## SSH connection wait time
@@ -198,27 +214,42 @@ rabbitmq_use_ssl: false
 #ssh_delay: 5
 
 
-## HAProxy
-# Uncomment this to disable keepalived installation (cf. documentation)
-haproxy_use_keepalived: True
+## HAProxy and keepalived
+# All the previous variables are used inside a var, in the group vars.
+# You can override the current keepalived definition (see
+# group_vars/all/keepalived.yml) in your user space if necessary.
 #
+# Uncomment this to disable keepalived installation (cf. documentation)
+# haproxy_use_keepalived: False
+proxy_use_keepalived: True
 # HAProxy Keepalived configuration (cf. documentation)
 # Make sure that this is set correctly according to the CIDR used for your
 # internal and external addresses.
-haproxy_keepalived_external_vip_cidr: "129.16.125.51/32"
+# haproxy_keepalived_external_vip_cidr: "{{external_lb_vip_address}}/32"
+# haproxy_keepalived_internal_vip_cidr: "{{internal_lb_vip_address}}/32"
+# haproxy_keepalived_external_interface:
+# haproxy_keepalived_internal_interface:
+
+haproxy_keepalived_external_vip_cidr: "129.16.xxx.xx/32"
 haproxy_keepalived_internal_vip_cidr: "{{internal_lb_vip_address}}/32"
 haproxy_keepalived_external_interface: eno2
 haproxy_keepalived_internal_interface: br-mgmt
 
-haproxy_user_ssl_cert: /etc/openstack_deploy/custom/certs/c3se_cloud_snic_se.crt
-haproxy_user_ssl_key: /etc/openstack_deploy/custom/certs/c3se_cloud_snic_se.key
+haproxy_user_ssl_cert: /etc/openstack_deploy/custom/certs/west-1.cloud.snic.se.crt
+haproxy_user_ssl_key: /etc/openstack_deploy/custom/certs/west-1.cloud.snic.se.key
 haproxy_user_ssl_ca_cert: /etc/openstack_deploy/custom/certs/DigiCertCA.crt
+
+ssl_protocol: "ALL -SSLv2 -SSLv3"
+ssl_cipher_suite: "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS"
+
+keystone_service_publicuri_proto: https
+keystone_x_frame_options: "allow-from https://hpc2n.cloud.snic.se/"
 
 # Defines the default VRRP id used for keepalived with haproxy.
 # Overwrite it to your value to make sure you don't overlap
 # with existing VRRPs id on your network. Default is 10 for the external and 11 for the
 # internal VRRPs
-# haproxy_keepalived_external_virtual_router_id:
+haproxy_keepalived_external_virtual_router_id: 12
 # haproxy_keepalived_internal_virtual_router_id:
 
 # Defines the VRRP master/backup priority. Defaults respectively to 100 and 20
@@ -227,44 +258,31 @@ haproxy_user_ssl_ca_cert: /etc/openstack_deploy/custom/certs/DigiCertCA.crt
 
 # Keepalived default IP address used to check its alive status (IPv4 only)
 # keepalived_ping_address: "193.0.14.129"
+#ceilometer_db_type: mongodb
+#ceilometer_db_ip: 10.38.1.172
+#ceilometer_metering_time_to_live: 604800
+#ceilometer_event_time_to_live: 604800
 
-# All the previous variables are used in a var file, fed to the keepalived role.
-# To use another file to feed the role, override the following var:
-# haproxy_keepalived_vars_file: 'vars/configs/keepalived_haproxy.yml'
+cinder_ceilometer_enabled: true
+glance_ceilometer_enabled: true
+nova_ceilometer_enabled: true
 
-## Host security hardening
-# The openstack-ansible-security role provides security hardening for hosts
-# by applying security configurations from the STIG. Hardening is disabled by
-# default, but an option to opt-in is available by setting the following
-# variable to 'true'.
-# Docs: http://docs.openstack.org/developer/openstack-ansible-security/
-# apply_security_hardening: true
+# Limit floating ip to 5
+neutron_quota_floatingip: 5
 
-ssl_protocol: "ALL -SSLv2 -SSLv3"
-ssl_cipher_suite: "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS"
+# Comma-separated list of DNS servers to be used by dnsmasq as forwarders.
+neutron_dnsmasq_dns_servers: 129.16.x.xx, 129.16.x.xx
 
-keystone_service_publicuri_proto: https
-
-# your SSL certificate is likely using a DNS name, so this must be set
-horizon_server_name: c3se.cloud.snic.se
-horizon_session_timeout: 28800
-
-# Horizon must refer to a name matching the SSL cert
-# in this test environment, both keystone and Horizon shared a common DNS name
+openstack_domain: west-1.cloud.snic.se
 horizon_keystone_host: "{{ horizon_server_name }}"
 horizon_keystone_endpoint: "{{ keystone_service_publicuri_proto }}://{{ horizon_server_name }}:5000/v3"
-
-# Multple region configuration
-#horizon_available_regions:
-#   - { url: "https://c3se.cloud.snic.se:5000/v3", name: "C3SE" }
-#   - { url: "https://hpc2n.cloud.snic.se:5000/v3", name: "HPC2N" }
-#   - { url: "https://uppmax.cloud.snic.se:5000/v3", name: "UPPMAX" }
-
-# Ensure that the public endpoint registered for Keystone uses the right name
 keystone_public_endpoint: "{{ keystone_service_publicuri_proto }}://{{ horizon_server_name }}:5000"
 keystone_service_publicurl: "{{ horizon_keystone_endpoint }}"
 
-# update mapping set rules = '"[{\\"remote\\": [{\\"type\\": \\"uid\\"}], \\"local\\": [{\\"user\\": {\\"domain\\": {\\"name\\": \\"snic\\"}, \\"type\\": \\"local\\",\\"name\\": \\"{0}\\"}}]}]"';
+#
+horizon_server_name: west-1.cloud.snic.se
+horizon_session_timeout: 28800
+horizon_websso_initial_choice: "saml2"
 
 horizon_custom_uploads:
    logo:
@@ -274,27 +292,21 @@ horizon_custom_uploads:
     src: "/etc/openstack_deploy/custom/SNICcloudLogo.001.png"
     dest: "img/logo-splash.png"
 
-_horizon_available_themes:
- default:
-   theme_name: "default"
-   theme_label: "Default"
-   theme_path: "themes/default"
-
-nova_console_type: novnc
-
+#
+#
 rsyslog_client_user_defined_targets:
-  - name: "amy"
+  - name: "xxx"
     proto: "udp"
     port: "514"
-    hostname: "amy.c3se.chalmers.se"
-
-horizon_websso_initial_choice: "saml2"
-
+    hostname: "xxx"
+#
+keystone_web_server: "apache"
 keystone_sp:
  cert_duration_years: 5
  trusted_dashboard_list:
    - "https://{{ horizon_server_name }}/auth/websso/"
    - "https://hpc2n.cloud.snic.se/auth/websso/"
+   - "https://east-1.cloud.snic.se/auth/websso/"
  trusted_idp_list:
    - name: 'SUPR'
      entity_ids:
@@ -319,13 +331,32 @@ keystone_sp:
            - name: 'urn:oid:0.9.2342.19200300.100.1.1'
              id: uid
 
-ceilometer_db_type: mongodb
-ceilometer_db_ip: 10.33.1.160
-ceilometer_metering_time_to_live: 604800
-ceilometer_event_time_to_live: 604800
+haproxy_extra_services:
+ - service:
+     haproxy_service_name: suprauth_service
+     haproxy_backend_nodes: "{{ groups['suprauth_all'] | default([])  }}"
+     haproxy_port: 8443
+     haproxy_ssl: true
+     haproxy_balance_type: "http"
+     haproxy_backend_options:
+       - "httpchk HEAD /"
+# - service:
+#     haproxy_service_name: radosgw_service
+#     haproxy_backend_nodes: "{{ groups['radosgw'] | default([])  }}"
+#     haproxy_port: 6000
+#     haproxy_backend_port: 80
+#     haproxy_ssl: true
+#     haproxy_balance_type: "http"
+#     haproxy_backend_options:
+#       - "httpchk HEAD /"
 
-cinder_ceilometer_enabled: true
-glance_ceilometer_enabled: true
-nova_ceilometer_enabled: true
+# Change ceilometer sample interval to one hour
+ceilometer_disk_source_sample_interval: 86400
+ceilometer_network_source_sample_interval: 86400
+ceilometer_meter_sample_interval: 86400
+ceilometer_cpu_source_sample_interval: 86400
 
-neutron_quota_floatingip: 4
+radosgw_service_publicurl: http://cirrus-rgw.c3se.chalmers.se:8080
+radosgw_service_internalurl: http://cirrus-rgw.c3se.chalmers.se:8080
+radosgw_service_adminurl: http://cirrus-rgw.c3se.chalmers.se:8080
+radosgw_service_region: C3SE
