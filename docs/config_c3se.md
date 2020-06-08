@@ -65,7 +65,7 @@ The following configuraton files were used for deployment.
 
 Linux-bridges are used for the for the vlan, storage and vxlan traffic.
 
-### Compute node interfaces
+### Management node interfaces
 
 /etc/network/interfaces.d/lxc-net-bridge.cfg
 
@@ -150,71 +150,45 @@ Linux-bridges are used for the for the vlan, storage and vxlan traffic.
        bridge_ports bond0
 
 
-- cirrus101-1 has IP suffix .101
-- cirrus101-2 has IP suffix .102
-- cirrus101-3 has IP suffix .103
-- cirrus101-4 has IP suffix .104
+- cirrus10 has IP suffix .170
+- cirrus11 has IP suffix .171
+- cirrus12 has IP suffix .172
 
-### Management node interfaces
+### Hypervisor node interfaces (diff from above)
 
-/etc/network/interfaces.d/bridge.interfaces
+/etc/network/interfaces.d/br-vxlan.cfg
 
-    # Container management VLAN interface
-    iface bond0.10 inet manual
-    vlan-raw-device bond0
-
-    # OpenStack Networking VXLAN (tunnel/overlay) VLAN interface
-    iface bond1.20 inet manual
-    vlan-raw-device bond1
-
-    # Container management bridge
-    auto br-mgmt
-    iface br-mgmt inet static
-    bridge_stp off
-    bridge_waitport 0
-    bridge_fd 0
-    # Bridge port references tagged interface
-    bridge_ports bond0.10
-    address 172.16.2.X
-    netmask 255.255.255.0
-
-    # OpenStack Networking VXLAN (tunnel/overlay) bridge
     auto br-vxlan
-    iface br-vxlan inet manual
+    iface br-vxlan inet static
     bridge_stp off
     bridge_waitport 0
     bridge_fd 0
-    # Bridge port references tagged interface
-    bridge_ports bond1.20
+    bridge_ports bond0.1039
+    address 10.39.3.xxx
+    netmask 255.255.0.0
 
-    # OpenStack Networking VLAN bridge
-    auto br-vlan
-    iface br-vlan inet manual
-    bridge_stp off
-    bridge_waitport 0
-    bridge_fd 0
-    # Bridge port references untagged interface
-    bridge_ports bond1
+/etc/network/interfaces.d/br-storage.cfg
 
     auto br-storage
     iface br-storage inet static
     bridge_stp off
     bridge_waitport 0
     bridge_fd 0
-    bridge_ports bond0
-    address 172.16.1.X
-    netmask 255.255.255.0
+    bridge_ports bond0.1043
+    address 10.43.3.xxx
+    netmask 255.255.0.0
 
-- cirrus10 has IP suffix .170
-- cirrus11 has IP suffix .171
-- cirrus12 has IP suffix .172
+- cirrus101-1 has IP suffix .101
+- cirrus101-2 has IP suffix .102
+- cirrus101-3 has IP suffix .103
+- cirrus101-4 has IP suffix .104
 
 ### Floating IPv4 Pool
 
-The floating IPv4 network pool is a /26 network (129.16.125.192/26) with the gateway 129.16.125.193.
+The floating IPv4 network pool is a /23 network (129.16.122.0/23) with the gateway 129.16.122.1.
 
     neutron net-create "Public External IPv4 Network" --shared --router:external=True --provider:network_type vlan --provider:segmentation_id 12 --provider:physical_network vlan
-    neutron subnet-create  --allocation-pool start=129.16.125.194,end=129.16.125.253 --gateway 129.16.125.193 --disable-dhcp --name "Public External IPv4 Subnet" --ip-version 4 --dns-nameserver 129.16.1.53 c0a20db8-4a7b-4702-ae05-bd65b10ebd35 129.16.125.192/26
+    neutron subnet-create  --allocation-pool start=129.16.123.1,end=129.16.123.250 --gateway 129.16.122.1 --disable-dhcp --name "Public External IPv4 Subnet" --ip-version 4 --dns-nameserver 129.16.1.53 c0a20db8-4a7b-4702-ae05-bd65b10ebd35 129.16.122.0/23
 
 ### IPv6 Networking using external DHCPv6
 
